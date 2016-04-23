@@ -1,0 +1,26 @@
+{
+  "name": "angular-tileview",
+  "version": "0.1.0",
+  "description": "A tileview for angular",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinydesk/angular-tileview.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tinydesk/angular-tileview/issues"
+  },
+  "homepage": "https://github.com/tinydesk/angular-tileview#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-angular-templatecache": "^1.8.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-less": "^3.0.5",
+    "streamqueue": "^1.1.1"
+  }
+}

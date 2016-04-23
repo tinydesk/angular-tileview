@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html ng-app="demoApp">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width">
+
+
+    <base href="../"/>
+    <title>TileView: Demo</title>
+
+    <!-- Le css -->
+    <link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="dist/tileview.css"/>
+    <link rel="stylesheet" type="text/css" href="demo/demo.css"/>
+
+
+  </head>
+  <body style="height: 100vh;">
+
+    <div ng-controller="demoCtrl" class="demo">
+      <td-tileview items="data" options="options">
+      </td-tileview>
+    </div>
+    
+    <!-- Le javascript -->
+    <script type="application/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+    <script type="application/javascript" src="dist/tileview.js"></script>
+    <script type="application/javascript">
+      angular.module('demoApp', ['td.tileview'])
+        .controller('demoCtrl', ['$scope', function($scope) {
+          $scope.data = [];
+          for (var i = 0; i < 1000; ++i) {
+            $scope.data[i] = {
+              id: i,
+              name: "Some Test Name " + i
+            }
+          }
+          
+          $scope.options = {
+            templateUrl: 'cell.html',
+            tileSize: {
+              width: 128,
+              height: 128
+            }
+          }
+        }]);
+    </script>
+    <script type="text/ng-template" id="cell.html">
+        <div class="item-cell-padding">
+          <div class="item-cell">{{ item.name }}</div>
+        </div>
+    </script>
+
+  </body>
+</html>

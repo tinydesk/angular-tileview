@@ -1,0 +1,17 @@
+{
+  "name": "angular-tileview",
+  "description": "A tileview for angular",
+  "main": ["dist/tileview.js", "dist/tileview.css"],
+  "authors": [
+    "Hannes Widmoser <widmoser@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/tinydesk/angular-tileview",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
