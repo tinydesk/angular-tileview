@@ -20,6 +20,12 @@
     <div ng-controller="demoCtrl" class="demo">
       <td-tileview items="data" options="options">
       </td-tileview>
+      
+      <div class="controls">
+        <input type="number" ng-model="options.tileSize.width" ng-model-options="{ updateOn: 'blur' }">
+        <input type="number" ng-model="options.tileSize.height" ng-model-options="{ updateOn: 'blur' }">
+        <button ng-click="fixSize()">Fix size</button>
+      </div>
     </div>
     
     <!-- Le javascript -->
@@ -42,6 +48,16 @@
               width: 128,
               height: 128
             }
+          }
+          
+          $scope.changeSize = function() {
+            $scope.options.tileSize.width = $scope.size;
+            $scope.options.tileSize.height = $scope.size;
+          };
+          
+          $scope.fixSize = function() {
+            angular.element(document.querySelector('.demo')).css('width', '800px');
+            $scope.$broadcast('td.tileview.resize');
           }
         }]);
     </script>

@@ -1,5 +1,4 @@
 .demo {
-  width: 500px;
   height: 700px;
   border: 1px solid;
 }
@@ -7,10 +6,15 @@
 .item-cell-padding {
   padding: 10px;
   display: inline-block;
+  vertical-align: top;
 }
 
 .item-cell {
   border: 1px solid;
   height: 100%;
   padding: 10px;
+}
+
+.controls {
+  padding: 20px;
 }
