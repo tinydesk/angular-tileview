@@ -18,7 +18,7 @@
   <body style="height: 100vh;">
 
     <div ng-controller="demoCtrl" class="demo">
-      <td-tileview items="data" options="options">
+      <td-tileview items="data" options="options" scroll-end="onScrollEnd()">
       </td-tileview>
       
       <form class="controls">
@@ -80,6 +80,10 @@
           $scope.changeData = function() {
             $scope.data[0].name = 'New name'; 
           };
+          
+          $scope.onScrollEnd = function() {
+            console.log('scroll end');
+          }
         }]);
     </script>
     <script type="text/ng-template" id="cell.html">

@@ -15,6 +15,7 @@
      * can be triggered, by broadcasting the `td.tileview.resize` event.
        *
        * @param {Array=} items The items that are to be displayed in the tile view
+     * @param {string=} scrollEnd An expression that gets evaluated when the user scrolls to the end of the data.
        * @param {object=} options An options object defining options that are relevant specifically for the tile ui such as
        * tile sizes for example. It consists of the following properties:
        *
@@ -27,13 +28,17 @@
        * Can be dynamically adjusted.
        * - **alignHorizontal** - {boolean} - Whether to show the tiles in a grid with a vertical scrollbar or horizontally
        * stacked.
+     * - **scrollEndOffset** - {number} - Some features that rely on the `scrollEnd` callback need to be informed in advance.
+     * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
+     * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
        */
     mod.directive('tdTileview', ['$compile', '$templateCache', '$window', function TileView($compile, $templateCache, $window) {
             return {
                 restrict: 'E',
                 scope: {
                     items: '=',
-                    options: '='
+                    options: '=',
+                    scrollEnd: '&'
                 },
                 templateUrl: 'tileview.tpl.html',
                 link: function (scope, elem, attrs) {
@@ -47,13 +52,16 @@
                     var itemContainer = container.children().eq(1);
                     var placeholderEnd = container.children().eq(2);
                     var linkFunction = $compile($templateCache.get(scope.options.templateUrl));
-                    var overflow = 2;
                     var heightStart = 0;
                     var heightEnd = 0;
                     var startRow = 0, endRow;
                     var itemsPerRow;
                     var rowCount;
                     var cachedRowCount;
+                    scope.$watch('options', function () {
+                        scope.options.scrollEndOffset = def(scope.options.scrollEndOffset, 0);
+                        scope.options.overflow = def(scope.options.overflow, 2);
+                    });
                     scope.$watch('items', layout);
                     scope.$on('td.tileview.resize', layout);
                     scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], function () {
@@ -75,16 +83,23 @@
                     function itemElementCount() {
                         return itemContainer.children().length;
                     }
+                    var lastScrollPosition = 0;
                     function updateVisibleRows() {
                         function clamp(value, min, max) {
                             return Math.max(Math.min(value, max), min);
                         }
                         var rect = elem[0].getBoundingClientRect();
                         var itemHeight = scope.options.tileSize.height;
-                        container[0].scrollTop = clamp(container[0].scrollTop, 0, scope.items.length * itemHeight - rect.height);
+                        var maxScrollPosition = rowCount * itemHeight - rect.height;
+                        container[0].scrollTop = clamp(container[0].scrollTop, 0, maxScrollPosition);
                         var scrollPosition = container[0].scrollTop;
+                        var scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset * itemHeight;
+                        if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.scrollEnd !== undefined) {
+                            scope.scrollEnd();
+                        }
                         startRow = clamp(Math.floor(scrollPosition / itemHeight), 0, rowCount - cachedRowCount);
                         endRow = startRow + cachedRowCount;
+                        lastScrollPosition = scrollPosition;
                     }
                     function updateItem(elem, item, digest) {
                         if (item !== undefined) {
@@ -146,7 +161,7 @@
                         var oldCachedRowCount = cachedRowCount || 0;
                         itemsPerRow = Math.floor(width / itemWidth);
                         rowCount = Math.ceil(scope.items.length / itemsPerRow);
-                        cachedRowCount = Math.ceil(height / itemHeight) + overflow;
+                        cachedRowCount = Math.ceil(height / itemHeight) + scope.options.overflow;
                         createElements(itemsPerRow * cachedRowCount - oldItemsPerRow * oldCachedRowCount);
                         setPlaceholder();
                     }
@@ -184,6 +199,10 @@
                 }
             };
         }]);
+    // Helper functions:
+    function def(value, defaultValue) {
+        return (value !== undefined) ? value : defaultValue;
+    }
 })();
 
 angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view\">\n    <div class=\"placeholder-start\">\n\n    </div>\n    <div class=\"item-container\">\n\n    </div>\n    <div class=\"placeholder-end\">\n\n    </div>\n</div>");}]);
