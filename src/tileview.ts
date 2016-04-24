@@ -1,10 +1,10 @@
 // service of module
-declare var angular: any;
+declare const angular: any;
 
-(function () {
+(() => {
   'use strict';
 
-  var mod = angular.module('td.tileview', []);
+  const mod = angular.module('td.tileview', []);
 
   /**
 	 * @ngdoc directive
@@ -37,7 +37,7 @@ declare var angular: any;
    * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
    * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
 	 */
-  mod.directive('tdTileview', ['$compile', '$templateCache', '$window', function TileView($compile, $templateCache, $window) {
+  mod.directive('tdTileview', ['$compile', '$templateCache', '$window', ($compile, $templateCache, $window) => {
     return {
       restrict: 'E',
       scope: {
@@ -46,42 +46,42 @@ declare var angular: any;
         scrollEnd: '&'
       },
       templateUrl: 'tileview.tpl.html',
-      link: function (scope, elem, attrs) {
+      link: (scope, elem, attrs) => {
         scope.elem = elem;
         scope.tileStyle = {};
         scope.tileStyle.marginRight = "4px";
         scope.tileStyle.marginBottom = "4px";
         scope.tileStyle.float = "left";
 
-        var container = elem.children();
+        const container = elem.children();
 
-        var placeholderStart = container.children().eq(0);
-        var itemContainer = container.children().eq(1);
-        var placeholderEnd = container.children().eq(2);
+        const placeholderStart = container.children().eq(0);
+        const itemContainer = container.children().eq(1);
+        const placeholderEnd = container.children().eq(2);
 
-        let linkFunction;// = $compile($templateCache.get(scope.options.templateUrl));
+        let linkFunction;
         
-        var heightStart = 0;
-        var heightEnd = 0;
+        let heightStart = 0;
+        let heightEnd = 0;
 
-        var startRow = 0, endRow;
+        let startRow = 0, endRow;
 
-        var itemsPerRow;
-        var rowCount;
-        var cachedRowCount;
+        let itemsPerRow;
+        let rowCount;
+        let cachedRowCount;
 
-        scope.$watch('options', function() {
-          scope.options.scrollEndOffset = def(scope.options.scrollEndOffset, 0);
-          scope.options.overflow = def(scope.options.overflow, 2);
+        scope.$watch('options', options => {
+          options.scrollEndOffset = def(options.scrollEndOffset, 0);
+          options.overflow = def(options.overflow, 2);
         });
-        scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], function() {
+        scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], ([width, height]) => {
           layout();
           forEachElement((el, i) => {
-            el.css('height', scope.options.tileSize.height + 'px');
-            el.css('width', scope.options.tileSize.width + 'px');
+            el.css('width', width + 'px');
+            el.css('height', height + 'px');
           });
         });
-        scope.$watch('options.templateUrl', function(templateUrl) {
+        scope.$watch('options.templateUrl', templateUrl => {
           const template = $templateCache.get(templateUrl);
           if (template !== undefined) {
             linkFunction = $compile(template);
@@ -116,13 +116,13 @@ declare var angular: any;
             return Math.max(Math.min(value, max), min);
           }
 
-          var rect = elem[0].getBoundingClientRect();
-          var itemHeight = scope.options.tileSize.height;
+          const rect = elem[0].getBoundingClientRect();
+          const itemHeight = scope.options.tileSize.height;
           
           const maxScrollPosition = rowCount*itemHeight - rect.height;
           
           container[0].scrollTop = clamp(container[0].scrollTop, 0, maxScrollPosition);
-          var scrollPosition = container[0].scrollTop;
+          const scrollPosition = container[0].scrollTop;
           
           const scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset*itemHeight;
           if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.scrollEnd !== undefined) {
@@ -139,7 +139,7 @@ declare var angular: any;
               if (elem.css('display') === 'none') {
                 elem.css('display', 'inline-block');
               }
-              var itemScope = elem.scope();
+              const itemScope = elem.scope();
               itemScope.item = item;
               if (digest === true) {
                 itemScope.$digest();
@@ -163,8 +163,7 @@ declare var angular: any;
             // add additional cells:
             
             for (let i = 0; i < diff; ++i) {
-              var itemScope = scope.$new();
-              linkFunction(itemScope, function (clonedElement) {
+              linkFunction(scope.$new(), function (clonedElement) {
                 clonedElement.css({
                   width: scope.options.tileSize.width + 'px',
                   height: scope.options.tileSize.height + 'px',
@@ -194,10 +193,10 @@ declare var angular: any;
 
         function layout() {
           if (linkFunction !== undefined && scope.items !== undefined) {
-            var itemHeight = scope.options.tileSize.height;
-            var itemWidth = scope.options.tileSize.width;
-            var width = itemContainer[0].getBoundingClientRect().width;
-            var height = elem[0].getBoundingClientRect().height;
+            const itemHeight = scope.options.tileSize.height;
+            const itemWidth = scope.options.tileSize.width;
+            const width = itemContainer[0].getBoundingClientRect().width;
+            const height = elem[0].getBoundingClientRect().height;
 
             itemsPerRow = Math.floor(width / itemWidth);
             rowCount = Math.ceil(scope.items.length / itemsPerRow);
@@ -210,30 +209,27 @@ declare var angular: any;
 
         function onScroll() {
           
-          var oldStartRow = startRow;
-          var oldEndRow = endRow;
+          const oldStartRow = startRow;
+          const oldEndRow = endRow;
           
           updateVisibleRows();
           setPlaceholder();
 
-          var i;
           if (startRow > oldEndRow || endRow < oldStartRow) {
             forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
           } else {
-            var intersectionStart = Math.max(startRow, oldStartRow);
-            var intersectionEnd = Math.min(endRow, oldEndRow);
+            const intersectionStart = Math.max(startRow, oldStartRow);
+            const intersectionEnd = Math.min(endRow, oldEndRow);
 
-            var itemElement;
-            var reusedElements;
             if (endRow > intersectionEnd) {
-              for (i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                itemElement = itemContainer.children().eq(0).detach();
+              for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                const itemElement = itemContainer.children().eq(0).detach();
                 updateItem(itemElement, scope.items[i], true);
                 itemContainer.append(itemElement);
               }
             } else if (startRow < intersectionStart) {
-              for (i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                itemElement = itemContainer.children().eq(-1).detach();
+              for (let i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                const itemElement = itemContainer.children().eq(-1).detach();
                 updateItem(itemElement, scope.items[i], true);
                 itemContainer.prepend(itemElement);
               }

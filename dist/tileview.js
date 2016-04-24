@@ -32,7 +32,7 @@
      * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
      * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
        */
-    mod.directive('tdTileview', ['$compile', '$templateCache', '$window', function TileView($compile, $templateCache, $window) {
+    mod.directive('tdTileview', ['$compile', '$templateCache', '$window', function ($compile, $templateCache, $window) {
             return {
                 restrict: 'E',
                 scope: {
@@ -51,22 +51,23 @@
                     var placeholderStart = container.children().eq(0);
                     var itemContainer = container.children().eq(1);
                     var placeholderEnd = container.children().eq(2);
-                    var linkFunction; // = $compile($templateCache.get(scope.options.templateUrl));
+                    var linkFunction;
                     var heightStart = 0;
                     var heightEnd = 0;
                     var startRow = 0, endRow;
                     var itemsPerRow;
                     var rowCount;
                     var cachedRowCount;
-                    scope.$watch('options', function () {
-                        scope.options.scrollEndOffset = def(scope.options.scrollEndOffset, 0);
-                        scope.options.overflow = def(scope.options.overflow, 2);
+                    scope.$watch('options', function (options) {
+                        options.scrollEndOffset = def(options.scrollEndOffset, 0);
+                        options.overflow = def(options.overflow, 2);
                     });
-                    scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], function () {
+                    scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], function (_a) {
+                        var width = _a[0], height = _a[1];
                         layout();
                         forEachElement(function (el, i) {
-                            el.css('height', scope.options.tileSize.height + 'px');
-                            el.css('width', scope.options.tileSize.width + 'px');
+                            el.css('width', width + 'px');
+                            el.css('height', height + 'px');
                         });
                     });
                     scope.$watch('options.templateUrl', function (templateUrl) {
@@ -138,8 +139,7 @@
                         if (diff > 0) {
                             // add additional cells:
                             for (var i = 0; i < diff; ++i) {
-                                var itemScope = scope.$new();
-                                linkFunction(itemScope, function (clonedElement) {
+                                linkFunction(scope.$new(), function (clonedElement) {
                                     clonedElement.css({
                                         width: scope.options.tileSize.width + 'px',
                                         height: scope.options.tileSize.height + 'px',
@@ -181,25 +181,22 @@
                         var oldEndRow = endRow;
                         updateVisibleRows();
                         setPlaceholder();
-                        var i;
                         if (startRow > oldEndRow || endRow < oldStartRow) {
                             forEachElement(function (el, i) { return updateItem(el, scope.items[startRow * itemsPerRow + i], true); });
                         }
                         else {
                             var intersectionStart = Math.max(startRow, oldStartRow);
                             var intersectionEnd = Math.min(endRow, oldEndRow);
-                            var itemElement;
-                            var reusedElements;
                             if (endRow > intersectionEnd) {
-                                for (i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                                    itemElement = itemContainer.children().eq(0).detach();
+                                for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                                    var itemElement = itemContainer.children().eq(0).detach();
                                     updateItem(itemElement, scope.items[i], true);
                                     itemContainer.append(itemElement);
                                 }
                             }
                             else if (startRow < intersectionStart) {
-                                for (i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                                    itemElement = itemContainer.children().eq(-1).detach();
+                                for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                                    var itemElement = itemContainer.children().eq(-1).detach();
                                     updateItem(itemElement, scope.items[i], true);
                                     itemContainer.prepend(itemElement);
                                 }
