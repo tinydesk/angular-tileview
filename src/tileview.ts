@@ -91,6 +91,22 @@ declare const angular: any;
             console.error('Template url not found: ' + templateUrl);
           }
         });
+        scope.$watch('options.alignHorizontal', (alignHorizontal) => {
+          if (alignHorizontal) {
+            elem.children().addClass('horizontal');
+          } else {
+            elem.children().removeClass('horizontal');
+          }
+          placeholderStart.css({
+            width: '100%',
+            height: '100%'
+          });
+          placeholderEnd.css({
+            width: '100%',
+            height: '100%'
+          });
+          layout();
+        });
         scope.$watch('items', layout);
         scope.$on('td.tileview.resize', layout);
         
@@ -121,8 +137,9 @@ declare const angular: any;
           
           const maxScrollPosition = rowCount*itemHeight - rect.height;
           
-          container[0].scrollTop = clamp(container[0].scrollTop, 0, maxScrollPosition);
-          const scrollPosition = container[0].scrollTop;
+          const scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
+          container[0][scrollDimension] = clamp(container[0][scrollDimension], 0, maxScrollPosition);
+          const scrollPosition = container[0][scrollDimension];
           
           const scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset*itemHeight;
           if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.scrollEnd !== undefined) {
@@ -152,8 +169,9 @@ declare const angular: any;
         function setPlaceholder() {
           heightStart = Math.max(startRow * scope.options.tileSize.height, 0);
           heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize.height, 0);
-          placeholderStart.css('height', heightStart + 'px');
-          placeholderEnd.css('height', heightEnd + 'px');
+          const placeHolderDimension = scope.options.alignHorizontal ? 'width' : 'height';
+          placeholderStart.css(placeHolderDimension, heightStart + 'px');
+          placeholderEnd.css(placeHolderDimension, heightEnd + 'px');
         }
 
         function createElements(diff) {
@@ -195,10 +213,10 @@ declare const angular: any;
           if (linkFunction !== undefined && scope.items !== undefined) {
             const itemHeight = scope.options.tileSize.height;
             const itemWidth = scope.options.tileSize.width;
-            const width = itemContainer[0].getBoundingClientRect().width;
+            const width = ((scope.options.alignHorizontal) ? itemContainer[0] : elem[0]).getBoundingClientRect().width;
             const height = elem[0].getBoundingClientRect().height;
 
-            itemsPerRow = Math.floor(width / itemWidth);
+            itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
             rowCount = Math.ceil(scope.items.length / itemsPerRow);
             cachedRowCount = Math.ceil(height / itemHeight) + scope.options.overflow;
             

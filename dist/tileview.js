@@ -81,6 +81,23 @@
                             console.error('Template url not found: ' + templateUrl);
                         }
                     });
+                    scope.$watch('options.alignHorizontal', function (alignHorizontal) {
+                        if (alignHorizontal) {
+                            elem.children().addClass('horizontal');
+                        }
+                        else {
+                            elem.children().removeClass('horizontal');
+                        }
+                        placeholderStart.css({
+                            width: '100%',
+                            height: '100%'
+                        });
+                        placeholderEnd.css({
+                            width: '100%',
+                            height: '100%'
+                        });
+                        layout();
+                    });
                     scope.$watch('items', layout);
                     scope.$on('td.tileview.resize', layout);
                     angular.element($window).on('resize', onResize);
@@ -103,8 +120,9 @@
                         var rect = elem[0].getBoundingClientRect();
                         var itemHeight = scope.options.tileSize.height;
                         var maxScrollPosition = rowCount * itemHeight - rect.height;
-                        container[0].scrollTop = clamp(container[0].scrollTop, 0, maxScrollPosition);
-                        var scrollPosition = container[0].scrollTop;
+                        var scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
+                        container[0][scrollDimension] = clamp(container[0][scrollDimension], 0, maxScrollPosition);
+                        var scrollPosition = container[0][scrollDimension];
                         var scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset * itemHeight;
                         if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.scrollEnd !== undefined) {
                             scope.scrollEnd();
@@ -131,8 +149,9 @@
                     function setPlaceholder() {
                         heightStart = Math.max(startRow * scope.options.tileSize.height, 0);
                         heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize.height, 0);
-                        placeholderStart.css('height', heightStart + 'px');
-                        placeholderEnd.css('height', heightEnd + 'px');
+                        var placeHolderDimension = scope.options.alignHorizontal ? 'width' : 'height';
+                        placeholderStart.css(placeHolderDimension, heightStart + 'px');
+                        placeholderEnd.css(placeHolderDimension, heightEnd + 'px');
                     }
                     function createElements(diff) {
                         updateVisibleRows();
@@ -167,9 +186,9 @@
                         if (linkFunction !== undefined && scope.items !== undefined) {
                             var itemHeight = scope.options.tileSize.height;
                             var itemWidth = scope.options.tileSize.width;
-                            var width = itemContainer[0].getBoundingClientRect().width;
+                            var width = ((scope.options.alignHorizontal) ? itemContainer[0] : elem[0]).getBoundingClientRect().width;
                             var height = elem[0].getBoundingClientRect().height;
-                            itemsPerRow = Math.floor(width / itemWidth);
+                            itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                             rowCount = Math.ceil(scope.items.length / itemsPerRow);
                             cachedRowCount = Math.ceil(height / itemHeight) + scope.options.overflow;
                             createElements(itemsPerRow * cachedRowCount - itemElementCount());
@@ -213,4 +232,4 @@
     }
 })();
 
-angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view\">\n    <div class=\"placeholder-start\">\n\n    </div>\n    <div class=\"item-container\">\n\n    </div>\n    <div class=\"placeholder-end\">\n\n    </div>\n</div>");}]);
+angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view horizontal\">\n    <div class=\"placeholder-start\">\n\n    </div>\n    <div class=\"item-container\">\n\n    </div>\n    <div class=\"placeholder-end\">\n\n    </div>\n</div>");}]);

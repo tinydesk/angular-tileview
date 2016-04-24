@@ -41,6 +41,10 @@
             <option value="CellWithImage">Cell with Image</option>
           </select>
         </fieldset>
+        <fieldset class="form-group">
+          <label for="horizontal">Align Horizontal:</label>
+          <input id="horizontal" class="form-control" type="checkbox" ng-model="options.alignHorizontal">
+        </fieldset>
         <button type="button" class="btn btn-default" ng-click="fixSize()">Fix size</button>
         <button type="button" class="btn btn-default" ng-click="changeData()">Change Data</button>
       </form>

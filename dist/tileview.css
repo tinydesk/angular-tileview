@@ -2,3 +2,14 @@
   height: 100%;
   overflow: auto;
 }
+.tile-view.horizontal {
+  white-space: nowrap;
+}
+.tile-view.horizontal > * {
+  vertical-align: top;
+  display: inline-block;
+  height: 100%;
+}
+.tile-view.horizontal .item-container > * {
+  white-space: normal;
+}
