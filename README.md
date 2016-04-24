@@ -4,10 +4,27 @@ A tile view that uses virtualisation to efficiently display large numbers of cel
 
 ## Get Started
 
-**Example:**
+Install via bower:
+
+```
+bower install angular-tileview --save
+```
+
+Add dependency:
+
+```javascript
+angular.module('myApp', ['td.tileview']);
+```
+
+Add component to template:
+
 ```html
 <td-tileview items="myItems" options="myOptions"></td-tileview>
 ```
+
+## Demo
+
+See this [codepen](http://codepen.io/widmoser/pen/KzBjqw).
 
 ## Parameters
 
