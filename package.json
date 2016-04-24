@@ -21,6 +21,7 @@
     "gulp-angular-templatecache": "^1.8.0",
     "gulp-concat": "^2.6.0",
     "gulp-less": "^3.0.5",
+    "gulp-typescript": "^2.13.0",
     "streamqueue": "^1.1.1"
   }
 }

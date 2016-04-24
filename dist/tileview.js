@@ -81,14 +81,15 @@
                         }
                         var rect = elem[0].getBoundingClientRect();
                         var itemHeight = scope.options.tileSize.height;
-                        var scrollPosition = clamp(container[0].scrollTop, 0, scope.items.length * itemHeight - rect.height);
+                        container[0].scrollTop = clamp(container[0].scrollTop, 0, scope.items.length * itemHeight - rect.height);
+                        var scrollPosition = container[0].scrollTop;
                         startRow = clamp(Math.floor(scrollPosition / itemHeight), 0, rowCount - cachedRowCount);
                         endRow = startRow + cachedRowCount;
                     }
                     function updateItem(elem, item, digest) {
                         if (item !== undefined) {
-                            if (elem.css('visibility') === 'hidden') {
-                                elem.css('visibility', 'visible');
+                            if (elem.css('display') === 'none') {
+                                elem.css('display', 'inline-block');
                             }
                             var itemScope = elem.scope();
                             itemScope.item = item;
@@ -97,12 +98,12 @@
                             }
                         }
                         else {
-                            elem.css('visibility', 'hidden');
+                            elem.css('display', 'none');
                         }
                     }
                     function setPlaceholder() {
-                        heightStart = startRow * scope.options.tileSize.height;
-                        heightEnd = (rowCount - endRow) * scope.options.tileSize.height;
+                        heightStart = Math.max(startRow * scope.options.tileSize.height, 0);
+                        heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize.height, 0);
                         placeholderStart.css('height', heightStart + 'px');
                         placeholderEnd.css('height', heightEnd + 'px');
                     }
@@ -113,8 +114,12 @@
                             for (var i = 0; i < diff; ++i) {
                                 var itemScope = scope.$new();
                                 linkFunction(itemScope, function (clonedElement) {
-                                    clonedElement.css('height', scope.options.tileSize.height + 'px');
-                                    clonedElement.css('width', scope.options.tileSize.width + 'px');
+                                    clonedElement.css({
+                                        width: scope.options.tileSize.width + 'px',
+                                        height: scope.options.tileSize.height + 'px',
+                                        display: 'inline-block',
+                                        'vertical-align': 'top'
+                                    });
                                     itemContainer.append(clonedElement);
                                 });
                             }

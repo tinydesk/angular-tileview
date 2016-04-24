@@ -21,11 +21,22 @@
       <td-tileview items="data" options="options">
       </td-tileview>
       
-      <div class="controls">
-        <input type="number" ng-model="options.tileSize.width" ng-model-options="{ updateOn: 'blur' }">
-        <input type="number" ng-model="options.tileSize.height" ng-model-options="{ updateOn: 'blur' }">
-        <button ng-click="fixSize()">Fix size</button>
-      </div>
+      <form class="controls">
+        <fieldset class="form-group">
+          <label for="width">Tile-Width:</label>
+          <input id="width" class="form-control" type="number" ng-model="options.tileSize.width" ng-model-options="{ updateOn: 'blur' }">
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="height">Tile-Height:</label>
+          <input id="height" class="form-control" type="number" ng-model="options.tileSize.height" ng-model-options="{ updateOn: 'blur' }">
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="numItems">Number of items:</label>
+          <input id="numItems" class="form-control" type="number" ng-model="numItems" ng-model-options="{ updateOn: 'blur' }">
+        </fieldset>
+        <button type="button" class="btn btn-default" ng-click="fixSize()">Fix size</button>
+        <button type="button" class="btn btn-default" ng-click="changeData()">Change Data</button>
+      </form>
     </div>
     
     <!-- Le javascript -->
@@ -34,13 +45,19 @@
     <script type="application/javascript">
       angular.module('demoApp', ['td.tileview'])
         .controller('demoCtrl', ['$scope', function($scope) {
-          $scope.data = [];
-          for (var i = 0; i < 1000; ++i) {
-            $scope.data[i] = {
-              id: i,
-              name: "Some Test Name " + i
+          
+          function createData(numItems) {
+            $scope.data = [];
+            for (var i = 0; i < numItems; ++i) {
+              $scope.data[i] = {
+                id: i,
+                name: "Some Test Name " + i
+              }
             }
           }
+          
+          $scope.$watch('numItems', createData);
+          $scope.numItems = 1000;
           
           $scope.options = {
             templateUrl: 'cell.html',
@@ -58,7 +75,11 @@
           $scope.fixSize = function() {
             angular.element(document.querySelector('.demo')).css('width', '800px');
             $scope.$broadcast('td.tileview.resize');
-          }
+          };
+          
+          $scope.changeData = function() {
+            $scope.data[0].name = 'New name'; 
+          };
         }]);
     </script>
     <script type="text/ng-template" id="cell.html">
