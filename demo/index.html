@@ -34,6 +34,13 @@
           <label for="numItems">Number of items:</label>
           <input id="numItems" class="form-control" type="number" ng-model="numItems" ng-model-options="{ updateOn: 'blur' }">
         </fieldset>
+        <fieldset class="form-group">
+          <label for="template">Template:</label>
+          <select id="template" class="form-control" ng-model="options.templateUrl">
+            <option value="SimpleCell">Simple Cell</option>
+            <option value="CellWithImage">Cell with Image</option>
+          </select>
+        </fieldset>
         <button type="button" class="btn btn-default" ng-click="fixSize()">Fix size</button>
         <button type="button" class="btn btn-default" ng-click="changeData()">Change Data</button>
       </form>
@@ -60,7 +67,7 @@
           $scope.numItems = 1000;
           
           $scope.options = {
-            templateUrl: 'cell.html',
+            templateUrl: 'SimpleCell',
             tileSize: {
               width: 128,
               height: 128
@@ -86,9 +93,14 @@
           }
         }]);
     </script>
-    <script type="text/ng-template" id="cell.html">
+    <script type="text/ng-template" id="SimpleCell">
         <div class="item-cell-padding">
           <div class="item-cell">{{ item.name }}</div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="CellWithImage">
+        <div class="item-cell-padding">
+          <div class="item-cell"><img src="http://placehold.it/{{ options.tileSize.width - 40 }}x32">{{ item.name }}</div>
         </div>
     </script>
 

@@ -59,7 +59,7 @@ declare var angular: any;
         var itemContainer = container.children().eq(1);
         var placeholderEnd = container.children().eq(2);
 
-        var linkFunction = $compile($templateCache.get(scope.options.templateUrl));
+        let linkFunction;// = $compile($templateCache.get(scope.options.templateUrl));
         
         var heightStart = 0;
         var heightEnd = 0;
@@ -74,8 +74,6 @@ declare var angular: any;
           scope.options.scrollEndOffset = def(scope.options.scrollEndOffset, 0);
           scope.options.overflow = def(scope.options.overflow, 2);
         });
-        scope.$watch('items', layout);
-        scope.$on('td.tileview.resize', layout);
         scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], function() {
           layout();
           forEachElement((el, i) => {
@@ -83,6 +81,18 @@ declare var angular: any;
             el.css('width', scope.options.tileSize.width + 'px');
           });
         });
+        scope.$watch('options.templateUrl', function(templateUrl) {
+          const template = $templateCache.get(templateUrl);
+          if (template !== undefined) {
+            linkFunction = $compile(template);
+            itemContainer.children().remove();
+            layout();
+          } else {
+            console.error('Template url not found: ' + templateUrl);
+          }
+        });
+        scope.$watch('items', layout);
+        scope.$on('td.tileview.resize', layout);
         
         angular.element($window).on('resize', onResize);
         
@@ -183,19 +193,19 @@ declare var angular: any;
         }
 
         function layout() {
-          var itemHeight = scope.options.tileSize.height;
-          var itemWidth = scope.options.tileSize.width;
-          var width = itemContainer[0].getBoundingClientRect().width;
-          var height = elem[0].getBoundingClientRect().height;
+          if (linkFunction !== undefined && scope.items !== undefined) {
+            var itemHeight = scope.options.tileSize.height;
+            var itemWidth = scope.options.tileSize.width;
+            var width = itemContainer[0].getBoundingClientRect().width;
+            var height = elem[0].getBoundingClientRect().height;
 
-          const oldItemsPerRow = itemsPerRow || 0;
-          const oldCachedRowCount = cachedRowCount || 0;
-          itemsPerRow = Math.floor(width / itemWidth);
-          rowCount = Math.ceil(scope.items.length / itemsPerRow);
-          cachedRowCount = Math.ceil(height / itemHeight) + scope.options.overflow;
-          
-          createElements(itemsPerRow*cachedRowCount - oldItemsPerRow*oldCachedRowCount);
-          setPlaceholder();
+            itemsPerRow = Math.floor(width / itemWidth);
+            rowCount = Math.ceil(scope.items.length / itemsPerRow);
+            cachedRowCount = Math.ceil(height / itemHeight) + scope.options.overflow;
+            
+            createElements(itemsPerRow*cachedRowCount - itemElementCount());
+            setPlaceholder();
+          }
         }
 
         function onScroll() {

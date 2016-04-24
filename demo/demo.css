@@ -13,6 +13,10 @@
   padding: 10px;
 }
 
+.item-cell img {
+  margin-bottom: 5px;
+}
+
 .controls {
   padding: 20px;
 }
