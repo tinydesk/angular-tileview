@@ -91,10 +91,13 @@ declare const angular: any;
             console.error('Template url not found: ' + templateUrl);
           }
         });
+        var sizeDimension;
         scope.$watch('options.alignHorizontal', (alignHorizontal) => {
           if (alignHorizontal) {
+            sizeDimension = 'width';
             elem.children().addClass('horizontal');
           } else {
+            sizeDimension = 'height';
             elem.children().removeClass('horizontal');
           }
           placeholderStart.css({
@@ -133,20 +136,20 @@ declare const angular: any;
           }
 
           const rect = elem[0].getBoundingClientRect();
-          const itemHeight = scope.options.tileSize.height;
+          const itemSize = scope.options.tileSize[sizeDimension];
           
-          const maxScrollPosition = rowCount*itemHeight - rect.height;
+          const maxScrollPosition = rowCount*itemSize - rect[sizeDimension];
           
           const scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
           container[0][scrollDimension] = clamp(container[0][scrollDimension], 0, maxScrollPosition);
           const scrollPosition = container[0][scrollDimension];
           
-          const scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset*itemHeight;
+          const scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset*itemSize;
           if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.scrollEnd !== undefined) {
             scope.scrollEnd();
           }
 
-          startRow = clamp(Math.floor(scrollPosition / itemHeight), 0, rowCount - cachedRowCount);
+          startRow = clamp(Math.floor(scrollPosition / itemSize), 0, rowCount - cachedRowCount);
           endRow = startRow + cachedRowCount;
           lastScrollPosition = scrollPosition;
         }
@@ -167,11 +170,10 @@ declare const angular: any;
           }
         
         function setPlaceholder() {
-          heightStart = Math.max(startRow * scope.options.tileSize.height, 0);
-          heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize.height, 0);
-          const placeHolderDimension = scope.options.alignHorizontal ? 'width' : 'height';
-          placeholderStart.css(placeHolderDimension, heightStart + 'px');
-          placeholderEnd.css(placeHolderDimension, heightEnd + 'px');
+          heightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
+          heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
+          placeholderStart.css(sizeDimension, heightStart + 'px');
+          placeholderEnd.css(sizeDimension, heightEnd + 'px');
         }
 
         function createElements(diff) {
@@ -211,14 +213,13 @@ declare const angular: any;
 
         function layout() {
           if (linkFunction !== undefined && scope.items !== undefined) {
-            const itemHeight = scope.options.tileSize.height;
             const itemWidth = scope.options.tileSize.width;
-            const width = ((scope.options.alignHorizontal) ? itemContainer[0] : elem[0]).getBoundingClientRect().width;
-            const height = elem[0].getBoundingClientRect().height;
+            const width = itemContainer[0].getBoundingClientRect().width;
+            const size = elem[0].getBoundingClientRect()[sizeDimension];
 
             itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
             rowCount = Math.ceil(scope.items.length / itemsPerRow);
-            cachedRowCount = Math.ceil(height / itemHeight) + scope.options.overflow;
+            cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow;
             
             createElements(itemsPerRow*cachedRowCount - itemElementCount());
             setPlaceholder();

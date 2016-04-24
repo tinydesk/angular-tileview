@@ -81,11 +81,14 @@
                             console.error('Template url not found: ' + templateUrl);
                         }
                     });
+                    var sizeDimension;
                     scope.$watch('options.alignHorizontal', function (alignHorizontal) {
                         if (alignHorizontal) {
+                            sizeDimension = 'width';
                             elem.children().addClass('horizontal');
                         }
                         else {
+                            sizeDimension = 'height';
                             elem.children().removeClass('horizontal');
                         }
                         placeholderStart.css({
@@ -118,16 +121,16 @@
                             return Math.max(Math.min(value, max), min);
                         }
                         var rect = elem[0].getBoundingClientRect();
-                        var itemHeight = scope.options.tileSize.height;
-                        var maxScrollPosition = rowCount * itemHeight - rect.height;
+                        var itemSize = scope.options.tileSize[sizeDimension];
+                        var maxScrollPosition = rowCount * itemSize - rect[sizeDimension];
                         var scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
                         container[0][scrollDimension] = clamp(container[0][scrollDimension], 0, maxScrollPosition);
                         var scrollPosition = container[0][scrollDimension];
-                        var scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset * itemHeight;
+                        var scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset * itemSize;
                         if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.scrollEnd !== undefined) {
                             scope.scrollEnd();
                         }
-                        startRow = clamp(Math.floor(scrollPosition / itemHeight), 0, rowCount - cachedRowCount);
+                        startRow = clamp(Math.floor(scrollPosition / itemSize), 0, rowCount - cachedRowCount);
                         endRow = startRow + cachedRowCount;
                         lastScrollPosition = scrollPosition;
                     }
@@ -147,11 +150,10 @@
                         }
                     }
                     function setPlaceholder() {
-                        heightStart = Math.max(startRow * scope.options.tileSize.height, 0);
-                        heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize.height, 0);
-                        var placeHolderDimension = scope.options.alignHorizontal ? 'width' : 'height';
-                        placeholderStart.css(placeHolderDimension, heightStart + 'px');
-                        placeholderEnd.css(placeHolderDimension, heightEnd + 'px');
+                        heightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
+                        heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
+                        placeholderStart.css(sizeDimension, heightStart + 'px');
+                        placeholderEnd.css(sizeDimension, heightEnd + 'px');
                     }
                     function createElements(diff) {
                         updateVisibleRows();
@@ -184,13 +186,12 @@
                     }
                     function layout() {
                         if (linkFunction !== undefined && scope.items !== undefined) {
-                            var itemHeight = scope.options.tileSize.height;
                             var itemWidth = scope.options.tileSize.width;
-                            var width = ((scope.options.alignHorizontal) ? itemContainer[0] : elem[0]).getBoundingClientRect().width;
-                            var height = elem[0].getBoundingClientRect().height;
+                            var width = itemContainer[0].getBoundingClientRect().width;
+                            var size = elem[0].getBoundingClientRect()[sizeDimension];
                             itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                             rowCount = Math.ceil(scope.items.length / itemsPerRow);
-                            cachedRowCount = Math.ceil(height / itemHeight) + scope.options.overflow;
+                            cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow;
                             createElements(itemsPerRow * cachedRowCount - itemElementCount());
                             setPlaceholder();
                         }
