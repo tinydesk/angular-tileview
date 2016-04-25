@@ -74,7 +74,7 @@
                         var template = $templateCache.get(templateUrl);
                         if (template !== undefined) {
                             linkFunction = $compile(template);
-                            itemContainer.children().remove();
+                            forEachElement(removeElement);
                             layout();
                         }
                         else {
@@ -106,7 +106,12 @@
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
                         angular.element($window).off('resize', onResize);
+                        forEachElement(removeElement);
                     });
+                    function removeElement(el) {
+                        el.scope().$destroy();
+                        el.remove();
+                    }
                     function forEachElement(fn) {
                         for (var i = 0; i < itemElementCount(); ++i) {
                             fn(itemContainer.children().eq(i), i);
@@ -174,7 +179,7 @@
                         else if (diff < 0) {
                             // remove cells that are not longer needed:
                             while (diff++ < 0) {
-                                itemContainer.children().eq(-1).remove();
+                                removeElement(itemContainer.children().eq(-1));
                             }
                         }
                         var startIndex = startRow * itemsPerRow;
@@ -185,7 +190,7 @@
                         scope.$digest();
                     }
                     function layout() {
-                        if (linkFunction !== undefined && scope.items !== undefined) {
+                        if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
                             var itemWidth = scope.options.tileSize.width;
                             var width = itemContainer[0].getBoundingClientRect().width;
                             var size = elem[0].getBoundingClientRect()[sizeDimension];

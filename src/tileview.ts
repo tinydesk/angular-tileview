@@ -85,7 +85,7 @@ declare const angular: any;
           const template = $templateCache.get(templateUrl);
           if (template !== undefined) {
             linkFunction = $compile(template);
-            itemContainer.children().remove();
+            forEachElement(removeElement);
             layout();
           } else {
             console.error('Template url not found: ' + templateUrl);
@@ -117,7 +117,13 @@ declare const angular: any;
         
         scope.$on('$destroy', function() {
           angular.element($window).off('resize', onResize);
+          forEachElement(removeElement);
         });
+        
+        function removeElement(el) {
+          el.scope().$destroy();
+          el.remove();
+        }
         
         function forEachElement(fn) {
           for (let i = 0; i < itemElementCount(); ++i) {
@@ -197,7 +203,7 @@ declare const angular: any;
           } else if (diff < 0) {
             // remove cells that are not longer needed:
             while (diff++ < 0) {
-              itemContainer.children().eq(-1).remove();
+              removeElement(itemContainer.children().eq(-1));
             }
           }
           
@@ -212,7 +218,7 @@ declare const angular: any;
         }
 
         function layout() {
-          if (linkFunction !== undefined && scope.items !== undefined) {
+          if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
             const itemWidth = scope.options.tileSize.width;
             const width = itemContainer[0].getBoundingClientRect().width;
             const size = elem[0].getBoundingClientRect()[sizeDimension];
