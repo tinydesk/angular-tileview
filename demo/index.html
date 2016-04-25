@@ -95,11 +95,16 @@
           $scope.onScrollEnd = function() {
             console.log('scroll end');
           }
+          
+          $scope.parentScopeValue = 'Outer scope';
         }]);
     </script>
     <script type="text/ng-template" id="SimpleCell">
         <div class="item-cell-padding">
-          <div class="item-cell">{{ item.name }}</div>
+          <div class="item-cell">
+            <p>{{ item.name }}</p>
+            <p>{{ parentScopeValue }}</p>
+          </div>
         </div>
     </script>
     <script type="text/ng-template" id="CellWithImage">

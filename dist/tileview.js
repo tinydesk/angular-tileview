@@ -165,7 +165,7 @@
                         if (diff > 0) {
                             // add additional cells:
                             for (var i = 0; i < diff; ++i) {
-                                linkFunction(scope.$new(), function (clonedElement) {
+                                linkFunction(scope.$parent.$new(), function (clonedElement) {
                                     clonedElement.css({
                                         width: scope.options.tileSize.width + 'px',
                                         height: scope.options.tileSize.height + 'px',
