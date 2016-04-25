@@ -101,7 +101,10 @@
                         });
                         layout();
                     });
-                    scope.$watch('items', layout);
+                    scope.$watch('items', function () {
+                        lastScrollPosition = Number.NEGATIVE_INFINITY;
+                        layout();
+                    });
                     scope.$on('td.tileview.resize', layout);
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
@@ -127,7 +130,7 @@
                     function itemElementCount() {
                         return itemContainer.children().length;
                     }
-                    var lastScrollPosition = 0;
+                    var lastScrollPosition = Number.NEGATIVE_INFINITY;
                     function updateVisibleRows() {
                         function clamp(value, min, max) {
                             return Math.max(Math.min(value, max), min);

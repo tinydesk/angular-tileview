@@ -110,7 +110,10 @@ declare const angular: any;
           });
           layout();
         });
-        scope.$watch('items', layout);
+        scope.$watch('items', () => {
+          lastScrollPosition = Number.NEGATIVE_INFINITY;
+          layout();
+        });
         scope.$on('td.tileview.resize', layout);
         
         angular.element($window).on('resize', onResize);
@@ -143,7 +146,7 @@ declare const angular: any;
           return itemContainer.children().length;
         }
         
-        let lastScrollPosition = 0;
+        let lastScrollPosition = Number.NEGATIVE_INFINITY;
         function updateVisibleRows() {
           function clamp(value, min, max) {
             return Math.max(Math.min(value, max), min);
