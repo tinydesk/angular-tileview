@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Angular Tile View by tinydesk</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Angular Tile View</h1>
+        <h2>A tile view that uses virtualisation to efficiently display large numbers of cells</h2>
+        <a href="https://github.com/tinydesk/angular-tileview" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h2>
+<a id="get-started" class="anchor" href="#get-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get Started</h2>
+
+<p>Install via bower:</p>
+
+<pre><code>bower install angular-tileview --save
+</code></pre>
+
+<p>Add dependency:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-smi">angular</span>.<span class="pl-en">module</span>(<span class="pl-s"><span class="pl-pds">'</span>myApp<span class="pl-pds">'</span></span>, [<span class="pl-s"><span class="pl-pds">'</span>td.tileview<span class="pl-pds">'</span></span>]);</pre></div>
+
+<p>Add component to template:</p>
+
+<div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">td</span><span class="pl-e">-tileview</span> <span class="pl-e">items</span>=<span class="pl-s"><span class="pl-pds">"</span>myItems<span class="pl-pds">"</span></span> <span class="pl-e">options</span>=<span class="pl-s"><span class="pl-pds">"</span>myOptions<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">td</span><span class="pl-e">-tileview</span>&gt;</pre></div>
+
+<h2>
+<a id="demo" class="anchor" href="#demo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Demo</h2>
+
+<p>See this <a href="http://codepen.io/widmoser/pen/KzBjqw">codepen</a>.</p>
+
+<h2>
+<a id="parameters" class="anchor" href="#parameters" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h2>
+
+<h3>
+<a id="items" class="anchor" href="#items" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>items</h3>
+
+<p>Type: <code>Array</code> (required)</p>
+
+<p>The data that should be displayed. Each item is associated with one cell in the tileview. The cell will be bound to the data of the corresponding item. There is no restriction on the shape of the items in the array. Any data can be used. Note that though it seems that each item has it's own cell, the component only creates enough dom elements to view all visible items at once and reuses those elements when the user scrolls.</p>
+
+<h3>
+<a id="scrollend" class="anchor" href="#scrollend" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>scrollEnd</h3>
+
+<p>Type: <code>Expression</code></p>
+
+<p>An expression that gets evaluated when the user scrolls to the end of the items. The expression can be optionally triggered in advance by setting the option <code>scrollEndOffset</code>.</p>
+
+<h3>
+<a id="options" class="anchor" href="#options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>options</h3>
+
+<p>Type: <code>Object</code></p>
+
+<p>The component supports the following options:</p>
+
+<h4>
+<a id="templateurl" class="anchor" href="#templateurl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>templateUrl</h4>
+
+<p>Type: <code>String</code> (required)</p>
+
+<p>Path to a template that is used to render a cell. The template might reference the <code>item</code> property which will always points to the item that is displayed in that cell. Note that it is possible to change this property later on, but it must be always the same for all cells.</p>
+
+<h4>
+<a id="tilesize" class="anchor" href="#tilesize" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>tileSize</h4>
+
+<p>Type: <code>Object</code> (required)</p>
+
+<p>An object that has two numeric properties <code>width</code> and <code>height</code> which define the exact size of each cell. Note that it is possible to change this property later on, but it must be always the same for all cells.</p>
+
+<h4>
+<a id="alignhorizontal" class="anchor" href="#alignhorizontal" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>alignHorizontal</h4>
+
+<p>Type: <code>boolean</code>. Default: <code>false</code></p>
+
+<p>If set to true, line breaks will be disabled and the items will be aligned in one large row with a horizontal scroll-bar if necessary.</p>
+
+<h4>
+<a id="scrollendoffset" class="anchor" href="#scrollendoffset" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>scrollEndOffset</h4>
+
+<p>Type: <code>number</code>. Default: <code>0</code></p>
+
+<p>The row, counted from the end, that triggers the <code>scrollEnd</code> expression.</p>
+
+<h4>
+<a id="overflow" class="anchor" href="#overflow" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>overflow</h4>
+
+<p>Type: <code>number</code>. Default: <code>2</code></p>
+
+<p>The number of excess rows that are added to the DOM. </p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/tinydesk/angular-tileview/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/tinydesk/angular-tileview/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/tinydesk/angular-tileview"></a> is maintained by <a href="https://github.com/tinydesk">tinydesk</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
