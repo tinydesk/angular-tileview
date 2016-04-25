@@ -74,7 +74,7 @@
                         var template = $templateCache.get(templateUrl);
                         if (template !== undefined) {
                             linkFunction = $compile(template);
-                            forEachElement(removeElement);
+                            removeAll();
                             layout();
                         }
                         else {
@@ -106,14 +106,21 @@
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
                         angular.element($window).off('resize', onResize);
-                        forEachElement(removeElement);
+                        removeAll();
                     });
                     function removeElement(el) {
                         el.scope().$destroy();
                         el.remove();
                     }
+                    function removeAll() {
+                        var numOfElements = itemElementCount();
+                        for (var i = 0; i < numOfElements; ++i) {
+                            removeElement(itemContainer.children().eq(0));
+                        }
+                    }
                     function forEachElement(fn) {
-                        for (var i = 0; i < itemElementCount(); ++i) {
+                        var numOfElements = itemElementCount();
+                        for (var i = 0; i < numOfElements; ++i) {
                             fn(itemContainer.children().eq(i), i);
                         }
                     }

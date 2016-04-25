@@ -85,7 +85,7 @@ declare const angular: any;
           const template = $templateCache.get(templateUrl);
           if (template !== undefined) {
             linkFunction = $compile(template);
-            forEachElement(removeElement);
+            removeAll();
             layout();
           } else {
             console.error('Template url not found: ' + templateUrl);
@@ -117,7 +117,7 @@ declare const angular: any;
         
         scope.$on('$destroy', function() {
           angular.element($window).off('resize', onResize);
-          forEachElement(removeElement);
+          removeAll();
         });
         
         function removeElement(el) {
@@ -125,8 +125,16 @@ declare const angular: any;
           el.remove();
         }
         
+        function removeAll() {
+          const numOfElements = itemElementCount();
+          for (let i = 0; i < numOfElements; ++i) {
+            removeElement(itemContainer.children().eq(0));  
+          }
+        }
+        
         function forEachElement(fn) {
-          for (let i = 0; i < itemElementCount(); ++i) {
+          const numOfElements = itemElementCount();
+          for (let i = 0; i < numOfElements; ++i) {
             fn(itemContainer.children().eq(i), i);
           }
         }
