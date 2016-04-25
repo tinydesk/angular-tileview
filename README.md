@@ -34,12 +34,6 @@ Type: `Array` (required)
 
 The data that should be displayed. Each item is associated with one cell in the tileview. The cell will be bound to the data of the corresponding item. There is no restriction on the shape of the items in the array. Any data can be used. Note that though it seems that each item has it's own cell, the component only creates enough dom elements to view all visible items at once and reuses those elements when the user scrolls.
 
-### scrollEnd
-
-Type: `Expression`
-
-An expression that gets evaluated when the user scrolls to the end of the items. The expression can be optionally triggered in advance by setting the option `scrollEndOffset`.
-
 ### options
 
 Type: `Object`
@@ -63,6 +57,12 @@ An object that has two numeric properties `width` and `height` which define the 
 Type: `boolean`. Default: `false`
 
 If set to true, line breaks will be disabled and the items will be aligned in one large row with a horizontal scroll-bar if necessary.
+
+#### onScrollEnd
+
+Type: `function`
+
+A callback that is invoked when the user scrolls to the end of the data. The expression can be optionally triggered in advance by setting the option `scrollEndOffset`.
 
 #### scrollEndOffset
 

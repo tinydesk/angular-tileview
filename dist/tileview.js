@@ -15,7 +15,6 @@
      * can be triggered, by broadcasting the `td.tileview.resize` event.
        *
        * @param {Array=} items The items that are to be displayed in the tile view
-     * @param {string=} scrollEnd An expression that gets evaluated when the user scrolls to the end of the data.
        * @param {object=} options An options object defining options that are relevant specifically for the tile ui such as
        * tile sizes for example. It consists of the following properties:
        *
@@ -28,6 +27,7 @@
        * Can be dynamically adjusted.
        * - **alignHorizontal** - {boolean} - Whether to show the tiles in a grid with a vertical scrollbar or horizontally
        * stacked.
+     * - **onScrollEnd** - {function} - A callback that is invoked when the user scrolls to the end of the data.
      * - **scrollEndOffset** - {number} - Some features that rely on the `scrollEnd` callback need to be informed in advance.
      * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
      * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
@@ -37,8 +37,7 @@
                 restrict: 'E',
                 scope: {
                     items: '=',
-                    options: '=',
-                    scrollEnd: '&'
+                    options: '='
                 },
                 templateUrl: 'tileview.tpl.html',
                 link: function (scope, elem, attrs) {
@@ -142,8 +141,8 @@
                         container[0][scrollDimension] = clamp(container[0][scrollDimension], 0, maxScrollPosition);
                         var scrollPosition = container[0][scrollDimension];
                         var scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset * itemSize;
-                        if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.scrollEnd !== undefined) {
-                            scope.scrollEnd();
+                        if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.options.onScrollEnd !== undefined) {
+                            scope.options.onScrollEnd();
                         }
                         startRow = clamp(Math.floor(scrollPosition / itemSize), 0, rowCount - cachedRowCount);
                         endRow = startRow + cachedRowCount;

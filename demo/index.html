@@ -18,7 +18,7 @@
   <body style="height: 100vh;">
 
     <div ng-controller="demoCtrl" class="demo">
-      <td-tileview items="data" options="options" scroll-end="onScrollEnd()">
+      <td-tileview items="data" options="options">
       </td-tileview>
       
       <form class="controls">
@@ -75,6 +75,9 @@
             tileSize: {
               width: 128,
               height: 128
+            },
+            onScrollEnd: function() {
+              console.log('scroll end');
             }
           }
           
@@ -91,10 +94,6 @@
           $scope.changeData = function() {
             $scope.data[0].name = 'New name'; 
           };
-          
-          $scope.onScrollEnd = function() {
-            console.log('scroll end');
-          }
           
           $scope.parentScopeValue = 'Outer scope';
         }]);
