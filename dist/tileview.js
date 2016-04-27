@@ -104,7 +104,7 @@
                         lastScrollPosition = Number.NEGATIVE_INFINITY;
                         layout();
                     });
-                    scope.$on('td.tileview.resize', layout);
+                    scope.$on('td.tileview.resize', resize);
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
                         angular.element($window).off('resize', onResize);
@@ -194,15 +194,27 @@
                         var startIndex = startRow * itemsPerRow;
                         forEachElement(function (el, i) { updateItem(el, scope.items[startIndex + i], false); });
                     }
-                    function onResize() {
-                        layout();
-                        scope.$digest();
+                    function resize(withDigest) {
+                        var newComponentSize = elem[0].getBoundingClientRect();
+                        if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
+                            layout();
+                            if (withDigest === true) {
+                                forEachElement(function (el) { return el.scope().$digest(); });
+                            }
+                        }
                     }
+                    function onResize() {
+                        resize(true);
+                    }
+                    var componentWidth = 0, componentHeight = 0;
                     function layout() {
                         if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
+                            var rect = elem[0].getBoundingClientRect();
+                            componentWidth = rect.width;
+                            componentHeight = rect.height;
                             var itemWidth = scope.options.tileSize.width;
                             var width = itemContainer[0].getBoundingClientRect().width;
-                            var size = elem[0].getBoundingClientRect()[sizeDimension];
+                            var size = rect[sizeDimension];
                             itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                             rowCount = Math.ceil(scope.items.length / itemsPerRow);
                             cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow;

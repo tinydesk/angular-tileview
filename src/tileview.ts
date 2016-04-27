@@ -113,7 +113,7 @@ declare const angular: any;
           lastScrollPosition = Number.NEGATIVE_INFINITY;
           layout();
         });
-        scope.$on('td.tileview.resize', layout);
+        scope.$on('td.tileview.resize', resize);
         
         angular.element($window).on('resize', onResize);
         
@@ -222,16 +222,29 @@ declare const angular: any;
         
         }
         
+        function resize(withDigest) {
+          const newComponentSize = elem[0].getBoundingClientRect();
+          if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
+            layout();
+            if (withDigest === true) {
+              forEachElement(el => el.scope().$digest());
+            }
+          }
+        }
+        
         function onResize() {
-          layout();
-          scope.$digest();
+          resize(true);
         }
 
+        let componentWidth = 0, componentHeight = 0;
         function layout() {
           if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
+            const rect = elem[0].getBoundingClientRect();
+            componentWidth = rect.width;
+            componentHeight = rect.height;
             const itemWidth = scope.options.tileSize.width;
             const width = itemContainer[0].getBoundingClientRect().width;
-            const size = elem[0].getBoundingClientRect()[sizeDimension];
+            const size = rect[sizeDimension];
 
             itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
             rowCount = Math.ceil(scope.items.length / itemsPerRow);

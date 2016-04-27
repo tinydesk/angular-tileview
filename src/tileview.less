@@ -1,9 +1,11 @@
 .tile-view {
   height: 100%;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   
   &.horizontal {
     white-space: nowrap;
+    overflow-x: auto;
     
     > * {
       vertical-align: top;
