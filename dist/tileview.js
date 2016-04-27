@@ -111,7 +111,9 @@
                         removeAll();
                     });
                     function removeElement(el) {
-                        el.scope().$destroy();
+                        if (el.scope() !== undefined) {
+                            el.scope().$destroy();
+                        }
                         el.remove();
                     }
                     function removeAll() {
