@@ -109,7 +109,7 @@ declare const angular: any;
           });
           layout();
         });
-        scope.$watch('items', () => {
+        scope.$watchCollection('items', () => {
           lastScrollPosition = Number.NEGATIVE_INFINITY;
           layout();
         });

@@ -100,7 +100,7 @@
                         });
                         layout();
                     });
-                    scope.$watch('items', function () {
+                    scope.$watchCollection('items', function () {
                         lastScrollPosition = Number.NEGATIVE_INFINITY;
                         layout();
                     });

@@ -47,6 +47,7 @@
         </fieldset>
         <button type="button" class="btn btn-default" ng-click="fixSize()">Fix size</button>
         <button type="button" class="btn btn-default" ng-click="changeData()">Change Data</button>
+        <button type="button" class="btn btn-default" ng-click="insert()">Insert</button>
       </form>
     </div>
     
@@ -96,13 +97,26 @@
           };
           
           $scope.parentScopeValue = 'Outer scope';
+          
+          $scope.insert = function() {
+            $scope.data.splice(0, 0, {
+              id: $scope.data.length,
+              name: "Some Test Name " + $scope.data.length
+            });
+          };
+          
+          $scope.remove = function(item) {
+            $scope.data.splice($scope.data.indexOf(item), 1);
+          };
         }]);
     </script>
     <script type="text/ng-template" id="SimpleCell">
         <div class="item-cell-padding">
           <div class="item-cell">
             <p>{{ item.name }}</p>
-            <p>{{ parentScopeValue }}</p>
+            <div>
+              <button class="btn btn-default" ng-click="remove(item)">Remove</button>
+            </div>
           </div>
         </div>
     </script>
