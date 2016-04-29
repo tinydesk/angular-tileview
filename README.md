@@ -22,6 +22,8 @@ Add component to template:
 <td-tileview items="myItems" options="myOptions"></td-tileview>
 ```
 
+Make sure that both `dist/tileview.js` and `dist/tileview.css` are included in your html file. The most common source of errors in relation to this component is that the css file was not included correctly.
+
 ## Demo
 
 See this [codepen](http://codepen.io/widmoser/pen/KzBjqw).
