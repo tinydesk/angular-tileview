@@ -1,0 +1,22 @@
+.demo {
+  height: 700px;
+  border: 1px solid;
+}
+
+.item-cell-padding {
+  padding: 10px;
+}
+
+.item-cell {
+  border: 1px solid;
+  height: 100%;
+  padding: 10px;
+}
+
+.item-cell img {
+  margin-bottom: 5px;
+}
+
+.controls {
+  padding: 20px;
+}
