@@ -153,7 +153,7 @@ declare const angular: any;
             return Math.max(Math.min(value, max), min);
           }
 
-          const rect = elem[0].getBoundingClientRect();
+          const rect = container[0].getBoundingClientRect();
           const itemSize = scope.options.tileSize[sizeDimension];
           
           const maxScrollPosition = rowCount*itemSize - rect[sizeDimension];
@@ -225,7 +225,7 @@ declare const angular: any;
         }
         
         function resize(withDigest) {
-          const newComponentSize = elem[0].getBoundingClientRect();
+          const newComponentSize = container[0].getBoundingClientRect();
           if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
             layout();
             if (withDigest === true) {
@@ -241,7 +241,7 @@ declare const angular: any;
         let componentWidth = 0, componentHeight = 0;
         function layout() {
           if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
-            const rect = elem[0].getBoundingClientRect();
+            const rect = container[0].getBoundingClientRect();
             componentWidth = rect.width;
             componentHeight = rect.height;
             const itemWidth = scope.options.tileSize.width;

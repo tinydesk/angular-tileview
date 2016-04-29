@@ -136,7 +136,7 @@
                         function clamp(value, min, max) {
                             return Math.max(Math.min(value, max), min);
                         }
-                        var rect = elem[0].getBoundingClientRect();
+                        var rect = container[0].getBoundingClientRect();
                         var itemSize = scope.options.tileSize[sizeDimension];
                         var maxScrollPosition = rowCount * itemSize - rect[sizeDimension];
                         var scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
@@ -197,7 +197,7 @@
                         forEachElement(function (el, i) { updateItem(el, scope.items[startIndex + i], false); });
                     }
                     function resize(withDigest) {
-                        var newComponentSize = elem[0].getBoundingClientRect();
+                        var newComponentSize = container[0].getBoundingClientRect();
                         if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
                             layout();
                             if (withDigest === true) {
@@ -211,7 +211,7 @@
                     var componentWidth = 0, componentHeight = 0;
                     function layout() {
                         if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
-                            var rect = elem[0].getBoundingClientRect();
+                            var rect = container[0].getBoundingClientRect();
                             componentWidth = rect.width;
                             componentHeight = rect.height;
                             var itemWidth = scope.options.tileSize.width;
