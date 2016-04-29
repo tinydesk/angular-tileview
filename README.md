@@ -26,7 +26,7 @@ Make sure that both `dist/tileview.js` and `dist/tileview.css` are included in y
 
 ## Demo
 
-See this [codepen](http://codepen.io/widmoser/pen/KzBjqw).
+[http://tinydesk.github.io/angular-tileview/demo/](http://tinydesk.github.io/angular-tileview/demo/)
 
 ## Parameters
 
