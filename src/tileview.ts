@@ -263,7 +263,6 @@ declare const angular: any;
           const oldEndRow = endRow;
           
           updateVisibleRows();
-          setPlaceholder();
 
           if (startRow > oldEndRow || endRow < oldStartRow) {
             forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
@@ -272,19 +271,27 @@ declare const angular: any;
             const intersectionEnd = Math.min(endRow, oldEndRow);
 
             if (endRow > intersectionEnd) {
+              let j = 0;
               for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                const itemElement = itemContainer.children().eq(0).detach();
-                updateItem(itemElement, scope.items[i], true);
+                updateItem(itemContainer.children().eq(j++), scope.items[i], true);
+              }
+              for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                const itemElement = itemContainer.children().eq(0).detach();                
                 itemContainer.append(itemElement);
               }
             } else if (startRow < intersectionStart) {
+              let j = -1;
+              for (let i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                updateItem(itemContainer.children().eq(j--), scope.items[i], true);
+              }
               for (let i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
                 const itemElement = itemContainer.children().eq(-1).detach();
-                updateItem(itemElement, scope.items[i], true);
                 itemContainer.prepend(itemElement);
               }
             }
           }
+          
+          setPlaceholder();
         }
 
         container.on('scroll', onScroll);

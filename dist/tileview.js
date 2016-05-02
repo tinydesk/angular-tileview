@@ -224,11 +224,18 @@
                             setPlaceholder();
                         }
                     }
+                    function forEachItem(startIndex, endIndex, fn) {
+                        var fromRight = startIndex > endIndex;
+                        var incr = fromRight ? -1 : 1;
+                        var j = fromRight ? -1 : 0;
+                        for (var i = startIndex; i < endIndex; i += incr) {
+                            fn(scope.items[i], j);
+                        }
+                    }
                     function onScroll() {
                         var oldStartRow = startRow;
                         var oldEndRow = endRow;
                         updateVisibleRows();
-                        setPlaceholder();
                         if (startRow > oldEndRow || endRow < oldStartRow) {
                             forEachElement(function (el, i) { return updateItem(el, scope.items[startRow * itemsPerRow + i], true); });
                         }
@@ -236,20 +243,27 @@
                             var intersectionStart = Math.max(startRow, oldStartRow);
                             var intersectionEnd = Math.min(endRow, oldEndRow);
                             if (endRow > intersectionEnd) {
+                                var j = 0;
+                                for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                                    updateItem(itemContainer.children().eq(j++), scope.items[i], true);
+                                }
                                 for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
                                     var itemElement = itemContainer.children().eq(0).detach();
-                                    updateItem(itemElement, scope.items[i], true);
                                     itemContainer.append(itemElement);
                                 }
                             }
                             else if (startRow < intersectionStart) {
+                                var j = -1;
+                                for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                                    updateItem(itemContainer.children().eq(j--), scope.items[i], true);
+                                }
                                 for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
                                     var itemElement = itemContainer.children().eq(-1).detach();
-                                    updateItem(itemElement, scope.items[i], true);
                                     itemContainer.prepend(itemElement);
                                 }
                             }
                         }
+                        setPlaceholder();
                     }
                     container.on('scroll', onScroll);
                 }
