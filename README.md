@@ -82,4 +82,4 @@ The number of excess rows that are added to the DOM.
 
 Type: `number`. Default: `0`
 
-The debounce in milliseconds. This will only affect the calls to `$digest`. The cells will still be moved smoothly. A value of `0` is interpreted as no debounce.
+Debounce while scrolling in milliseconds. A value of `0` is interpreted as no debounce.

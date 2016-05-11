@@ -55,6 +55,7 @@
                     var heightStart = 0;
                     var heightEnd = 0;
                     var startRow = 0, endRow;
+                    var renderedStartRow = -1, renderedEndRow = -1;
                     var itemsPerRow;
                     var rowCount;
                     var cachedRowCount;
@@ -148,7 +149,7 @@
                         if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.options.onScrollEnd !== undefined) {
                             scope.options.onScrollEnd();
                         }
-                        startRow = clamp(Math.floor(scrollPosition / itemSize), 0, rowCount - cachedRowCount);
+                        startRow = clamp(Math.floor(scrollPosition / itemSize) - scope.options.overflow, 0, rowCount - cachedRowCount);
                         endRow = startRow + cachedRowCount;
                         lastScrollPosition = scrollPosition;
                     }
@@ -221,34 +222,21 @@
                             var size = rect[sizeDimension];
                             itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                             rowCount = Math.ceil(scope.items.length / itemsPerRow);
-                            cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow;
+                            cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
                             createElements(itemsPerRow * cachedRowCount - itemElementCount());
                             setPlaceholder();
                         }
                     }
-                    function updateAll() {
-                        forEachElement(function (el, i) { return updateItem(el, scope.items[startRow * itemsPerRow + i], true); });
-                    }
-                    var debounceTimeout;
-                    function onScroll() {
-                        var oldStartRow = startRow;
-                        var oldEndRow = endRow;
+                    function update() {
                         updateVisibleRows();
-                        if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
-                            if (debounceTimeout === undefined) {
-                                debounceTimeout = $timeout(function () {
-                                    debounceTimeout = undefined;
-                                    updateAll();
-                                }, scope.options.debounce);
-                            }
-                        }
-                        else {
-                            if (startRow > oldEndRow || endRow < oldStartRow) {
-                                updateAll();
+                        if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
+                            console.log('update', startRow, renderedStartRow, endRow, renderedEndRow);
+                            if (startRow > renderedStartRow || endRow < renderedEndRow) {
+                                forEachElement(function (el, i) { return updateItem(el, scope.items[startRow * itemsPerRow + i], true); });
                             }
                             else {
-                                var intersectionStart = Math.max(startRow, oldStartRow);
-                                var intersectionEnd = Math.min(endRow, oldEndRow);
+                                var intersectionStart = Math.max(startRow, renderedStartRow);
+                                var intersectionEnd = Math.min(endRow, renderedEndRow);
                                 if (endRow > intersectionEnd) {
                                     var j = 0;
                                     for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
@@ -270,8 +258,24 @@
                                     }
                                 }
                             }
+                            renderedStartRow = startRow;
+                            renderedEndRow = endRow;
                         }
                         setPlaceholder();
+                    }
+                    var debounceTimeout;
+                    function onScroll() {
+                        if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
+                            if (debounceTimeout === undefined) {
+                                debounceTimeout = $timeout(function () {
+                                    debounceTimeout = undefined;
+                                    update();
+                                }, scope.options.debounce);
+                            }
+                        }
+                        else {
+                            update();
+                        }
                     }
                     container.on('scroll', onScroll);
                 }

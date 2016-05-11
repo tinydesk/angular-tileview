@@ -36,7 +36,7 @@ declare const angular: any;
    * - **scrollEndOffset** - {number} - Some features that rely on the `scrollEnd` callback need to be informed in advance. 
    * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
    * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
-   * - **debounce** - {number} - Debounce in milliseconds. This will only affect the calls to `$digest`. The cells will still be moved smoothly. A value of `0` is interpreted as no debounce. **Default**: 0.
+   * - **debounce** - {number} - Debounce for the scroll event. A value of `0` is interpreted as no debounce. **Default**: 0.
 	 */
   mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', ($compile, $templateCache, $timeout, $window) => {
     return {
@@ -65,6 +65,7 @@ declare const angular: any;
         let heightEnd = 0;
 
         let startRow = 0, endRow;
+        let renderedStartRow = -1, renderedEndRow = -1;
 
         let itemsPerRow;
         let rowCount;
@@ -169,7 +170,7 @@ declare const angular: any;
             scope.options.onScrollEnd();
           }
 
-          startRow = clamp(Math.floor(scrollPosition / itemSize), 0, rowCount - cachedRowCount);
+          startRow = clamp(Math.floor(scrollPosition / itemSize) - scope.options.overflow, 0, rowCount - cachedRowCount);
           endRow = startRow + cachedRowCount;
           lastScrollPosition = scrollPosition;
         }
@@ -252,38 +253,23 @@ declare const angular: any;
 
             itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
             rowCount = Math.ceil(scope.items.length / itemsPerRow);
-            cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow;
+            cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow*2;
             
             createElements(itemsPerRow*cachedRowCount - itemElementCount());
             setPlaceholder();
           }
         }
         
-        function updateAll() {
-          forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
-        }
-
-        let debounceTimeout;
-        function onScroll() {
-          
-          const oldStartRow = startRow;
-          const oldEndRow = endRow;
-          
+        function update() {
           updateVisibleRows();
-
-          if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
-            if (debounceTimeout === undefined) {
-              debounceTimeout = $timeout(function() {
-                debounceTimeout = undefined;
-                updateAll();  
-              }, scope.options.debounce);
-            }
-          } else {
-            if (startRow > oldEndRow || endRow < oldStartRow) {
-              updateAll();
+          
+          if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
+            console.log('update', startRow, renderedStartRow, endRow, renderedEndRow);
+            if (startRow > renderedStartRow || endRow < renderedEndRow) {
+              forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
             } else {
-              const intersectionStart = Math.max(startRow, oldStartRow);
-              const intersectionEnd = Math.min(endRow, oldEndRow);
+              const intersectionStart = Math.max(startRow, renderedStartRow);
+              const intersectionEnd = Math.min(endRow, renderedEndRow);
 
               if (endRow > intersectionEnd) {
                 let j = 0;
@@ -291,7 +277,7 @@ declare const angular: any;
                   updateItem(itemContainer.children().eq(j++), scope.items[i], true);
                 }
                 for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                  const itemElement = itemContainer.children().eq(0).detach();                
+                  const itemElement = itemContainer.children().eq(0).detach();
                   itemContainer.append(itemElement);
                 }
               } else if (startRow < intersectionStart) {
@@ -305,9 +291,26 @@ declare const angular: any;
                 }
               }
             }
+
+            renderedStartRow = startRow;
+            renderedEndRow = endRow;
           }
-          
+         
           setPlaceholder();
+        }
+
+        let debounceTimeout;
+        function onScroll() {
+          if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
+            if (debounceTimeout === undefined) {
+              debounceTimeout = $timeout(function() {
+                debounceTimeout = undefined;
+                update();  
+              }, scope.options.debounce);
+            }
+          } else {
+            update();
+          }
         }
 
         container.on('scroll', onScroll);
