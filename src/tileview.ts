@@ -265,7 +265,6 @@ declare const angular: any;
           updateVisibleRows();
           
           if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
-            console.log('update', startRow, renderedStartRow, endRow, renderedEndRow);
             if (startRow > renderedStartRow || endRow < renderedEndRow) {
               forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
             } else {
