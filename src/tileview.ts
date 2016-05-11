@@ -272,10 +272,12 @@ declare const angular: any;
           updateVisibleRows();
 
           if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
-            if (debounceTimeout) {
-              $timeout.cancel(debounceTimeout);
+            if (debounceTimeout === undefined) {
+              debounceTimeout = $timeout(function() {
+                debounceTimeout = undefined;
+                updateAll();  
+              }, scope.options.debounce);
             }
-            debounceTimeout = $timeout(updateAll, scope.options.debounce);
           } else {
             if (startRow > oldEndRow || endRow < oldStartRow) {
               updateAll();
