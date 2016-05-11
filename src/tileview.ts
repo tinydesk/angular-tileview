@@ -116,6 +116,7 @@ declare const angular: any;
           lastScrollPosition = Number.NEGATIVE_INFINITY;
           layout();
         });
+        scope.$watch('options.overflow', layout);
         scope.$on('td.tileview.resize', resize);
         
         angular.element($window).on('resize', onResize);
@@ -306,7 +307,7 @@ declare const angular: any;
               debounceTimeout = $timeout(function() {
                 debounceTimeout = undefined;
                 update();  
-              }, scope.options.debounce);
+              }, scope.options.debounce, false);
             }
           } else {
             update();

@@ -31,7 +31,7 @@
      * - **scrollEndOffset** - {number} - Some features that rely on the `scrollEnd` callback need to be informed in advance.
      * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
      * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
-     * - **debounce** - {number} - Debounce in milliseconds. This will only affect the calls to `$digest`. The cells will still be moved smoothly. A value of `0` is interpreted as no debounce. **Default**: 0.
+     * - **debounce** - {number} - Debounce for the scroll event. A value of `0` is interpreted as no debounce. **Default**: 0.
        */
     mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', function ($compile, $templateCache, $timeout, $window) {
             return {
@@ -107,6 +107,7 @@
                         lastScrollPosition = Number.NEGATIVE_INFINITY;
                         layout();
                     });
+                    scope.$watch('options.overflow', layout);
                     scope.$on('td.tileview.resize', resize);
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
@@ -270,7 +271,7 @@
                                 debounceTimeout = $timeout(function () {
                                     debounceTimeout = undefined;
                                     update();
-                                }, scope.options.debounce);
+                                }, scope.options.debounce, false);
                             }
                         }
                         else {
