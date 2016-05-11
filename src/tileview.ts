@@ -45,7 +45,7 @@ declare const angular: any;
         items: '=',
         options: '='
       },
-      templateUrl: 'tileview.tpl.html',
+      template: $templateCache.get('tileview.tpl.html'),
       link: (scope, elem, attrs) => {
         scope.elem = elem;
         scope.tileStyle = {};

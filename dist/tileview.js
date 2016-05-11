@@ -40,7 +40,7 @@
                     items: '=',
                     options: '='
                 },
-                templateUrl: 'tileview.tpl.html',
+                template: $templateCache.get('tileview.tpl.html'),
                 link: function (scope, elem, attrs) {
                     scope.elem = elem;
                     scope.tileStyle = {};
