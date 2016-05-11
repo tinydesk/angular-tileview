@@ -36,8 +36,9 @@ declare const angular: any;
    * - **scrollEndOffset** - {number} - Some features that rely on the `scrollEnd` callback need to be informed in advance. 
    * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
    * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
+   * - **debounce** - {number} - Debounce in milliseconds. This will only affect the calls to `$digest`. The cells will still be moved smoothly. A value of `0` is interpreted as no debounce. **Default**: 0.
 	 */
-  mod.directive('tdTileview', ['$compile', '$templateCache', '$window', ($compile, $templateCache, $window) => {
+  mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', ($compile, $templateCache, $timeout, $window) => {
     return {
       restrict: 'E',
       scope: {
@@ -72,6 +73,7 @@ declare const angular: any;
         scope.$watch('options', options => {
           options.scrollEndOffset = def(options.scrollEndOffset, 0);
           options.overflow = def(options.overflow, 2);
+          options.debounce = def(options.debounce, 0);
         });
         scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], ([width, height]) => {
           layout();
@@ -256,7 +258,12 @@ declare const angular: any;
             setPlaceholder();
           }
         }
+        
+        function updateAll() {
+          forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
+        }
 
+        let debounceTimeout;
         function onScroll() {
           
           const oldStartRow = startRow;
@@ -264,29 +271,36 @@ declare const angular: any;
           
           updateVisibleRows();
 
-          if (startRow > oldEndRow || endRow < oldStartRow) {
-            forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
+          if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
+            if (debounceTimeout) {
+              $timeout.cancel(debounceTimeout);
+            }
+            debounceTimeout = $timeout(updateAll, scope.options.debounce);
           } else {
-            const intersectionStart = Math.max(startRow, oldStartRow);
-            const intersectionEnd = Math.min(endRow, oldEndRow);
+            if (startRow > oldEndRow || endRow < oldStartRow) {
+              updateAll();
+            } else {
+              const intersectionStart = Math.max(startRow, oldStartRow);
+              const intersectionEnd = Math.min(endRow, oldEndRow);
 
-            if (endRow > intersectionEnd) {
-              let j = 0;
-              for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                updateItem(itemContainer.children().eq(j++), scope.items[i], true);
-              }
-              for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                const itemElement = itemContainer.children().eq(0).detach();                
-                itemContainer.append(itemElement);
-              }
-            } else if (startRow < intersectionStart) {
-              let j = -1;
-              for (let i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                updateItem(itemContainer.children().eq(j--), scope.items[i], true);
-              }
-              for (let i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                const itemElement = itemContainer.children().eq(-1).detach();
-                itemContainer.prepend(itemElement);
+              if (endRow > intersectionEnd) {
+                let j = 0;
+                for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                  updateItem(itemContainer.children().eq(j++), scope.items[i], true);
+                }
+                for (let i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                  const itemElement = itemContainer.children().eq(0).detach();                
+                  itemContainer.append(itemElement);
+                }
+              } else if (startRow < intersectionStart) {
+                let j = -1;
+                for (let i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                  updateItem(itemContainer.children().eq(j--), scope.items[i], true);
+                }
+                for (let i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                  const itemElement = itemContainer.children().eq(-1).detach();
+                  itemContainer.prepend(itemElement);
+                }
               }
             }
           }

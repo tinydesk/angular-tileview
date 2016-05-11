@@ -77,3 +77,9 @@ The row, counted from the end, that triggers the `scrollEnd` expression.
 Type: `number`. Default: `2`
 
 The number of excess rows that are added to the DOM. 
+
+#### debounce
+
+Type: `number`. Default: `0`
+
+The debounce in milliseconds. This will only affect the calls to `$digest`. The cells will still be moved smoothly. A value of `0` is interpreted as no debounce.

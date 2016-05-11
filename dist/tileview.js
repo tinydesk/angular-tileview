@@ -31,8 +31,9 @@
      * - **scrollEndOffset** - {number} - Some features that rely on the `scrollEnd` callback need to be informed in advance.
      * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
      * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
+     * - **debounce** - {number} - Debounce in milliseconds. This will only affect the calls to `$digest`. The cells will still be moved smoothly. A value of `0` is interpreted as no debounce. **Default**: 0.
        */
-    mod.directive('tdTileview', ['$compile', '$templateCache', '$window', function ($compile, $templateCache, $window) {
+    mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', function ($compile, $templateCache, $timeout, $window) {
             return {
                 restrict: 'E',
                 scope: {
@@ -60,6 +61,7 @@
                     scope.$watch('options', function (options) {
                         options.scrollEndOffset = def(options.scrollEndOffset, 0);
                         options.overflow = def(options.overflow, 2);
+                        options.debounce = def(options.debounce, 0);
                     });
                     scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], function (_a) {
                         var width = _a[0], height = _a[1];
@@ -224,42 +226,46 @@
                             setPlaceholder();
                         }
                     }
-                    function forEachItem(startIndex, endIndex, fn) {
-                        var fromRight = startIndex > endIndex;
-                        var incr = fromRight ? -1 : 1;
-                        var j = fromRight ? -1 : 0;
-                        for (var i = startIndex; i < endIndex; i += incr) {
-                            fn(scope.items[i], j);
-                        }
+                    function updateAll() {
+                        forEachElement(function (el, i) { return updateItem(el, scope.items[startRow * itemsPerRow + i], true); });
                     }
+                    var debounceTimeout;
                     function onScroll() {
                         var oldStartRow = startRow;
                         var oldEndRow = endRow;
                         updateVisibleRows();
-                        if (startRow > oldEndRow || endRow < oldStartRow) {
-                            forEachElement(function (el, i) { return updateItem(el, scope.items[startRow * itemsPerRow + i], true); });
+                        if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
+                            if (debounceTimeout) {
+                                $timeout.cancel(debounceTimeout);
+                            }
+                            debounceTimeout = $timeout(updateAll, scope.options.debounce);
                         }
                         else {
-                            var intersectionStart = Math.max(startRow, oldStartRow);
-                            var intersectionEnd = Math.min(endRow, oldEndRow);
-                            if (endRow > intersectionEnd) {
-                                var j = 0;
-                                for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                                    updateItem(itemContainer.children().eq(j++), scope.items[i], true);
-                                }
-                                for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                                    var itemElement = itemContainer.children().eq(0).detach();
-                                    itemContainer.append(itemElement);
-                                }
+                            if (startRow > oldEndRow || endRow < oldStartRow) {
+                                updateAll();
                             }
-                            else if (startRow < intersectionStart) {
-                                var j = -1;
-                                for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                                    updateItem(itemContainer.children().eq(j--), scope.items[i], true);
+                            else {
+                                var intersectionStart = Math.max(startRow, oldStartRow);
+                                var intersectionEnd = Math.min(endRow, oldEndRow);
+                                if (endRow > intersectionEnd) {
+                                    var j = 0;
+                                    for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                                        updateItem(itemContainer.children().eq(j++), scope.items[i], true);
+                                    }
+                                    for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
+                                        var itemElement = itemContainer.children().eq(0).detach();
+                                        itemContainer.append(itemElement);
+                                    }
                                 }
-                                for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                                    var itemElement = itemContainer.children().eq(-1).detach();
-                                    itemContainer.prepend(itemElement);
+                                else if (startRow < intersectionStart) {
+                                    var j = -1;
+                                    for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                                        updateItem(itemContainer.children().eq(j--), scope.items[i], true);
+                                    }
+                                    for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
+                                        var itemElement = itemContainer.children().eq(-1).detach();
+                                        itemContainer.prepend(itemElement);
+                                    }
                                 }
                             }
                         }
