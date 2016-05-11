@@ -265,7 +265,7 @@ declare const angular: any;
           updateVisibleRows();
           
           if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
-            if (startRow > renderedStartRow || endRow < renderedEndRow) {
+            if (startRow > renderedEndRow || endRow < renderedStartRow) {
               forEachElement((el, i) => updateItem(el, scope.items[startRow * itemsPerRow + i], true));
             } else {
               const intersectionStart = Math.max(startRow, renderedStartRow);
