@@ -163,7 +163,6 @@ declare const angular: any;
           const maxScrollPosition = rowCount*itemSize - rect[sizeDimension];
           
           const scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
-          container[0][scrollDimension] = clamp(container[0][scrollDimension], 0, maxScrollPosition);
           const scrollPosition = container[0][scrollDimension];
           
           const scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset*itemSize;
@@ -192,10 +191,14 @@ declare const angular: any;
           }
         
         function setPlaceholder() {
-          heightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
-          heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
-          placeholderStart.css(sizeDimension, heightStart + 'px');
-          placeholderEnd.css(sizeDimension, heightEnd + 'px');
+          const newHeightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
+          const newHeightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
+          if (newHeightStart !== heightStart || newHeightEnd !== heightEnd) {
+            placeholderStart.css(sizeDimension, newHeightStart + 'px');
+            placeholderEnd.css(sizeDimension, newHeightEnd + 'px');
+            heightStart = newHeightStart;
+            heightEnd = newHeightEnd;
+          }
         }
 
         function createElements(diff) {

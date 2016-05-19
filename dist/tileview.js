@@ -144,7 +144,6 @@
                         var itemSize = scope.options.tileSize[sizeDimension];
                         var maxScrollPosition = rowCount * itemSize - rect[sizeDimension];
                         var scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
-                        container[0][scrollDimension] = clamp(container[0][scrollDimension], 0, maxScrollPosition);
                         var scrollPosition = container[0][scrollDimension];
                         var scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset * itemSize;
                         if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.options.onScrollEnd !== undefined) {
@@ -170,10 +169,14 @@
                         }
                     }
                     function setPlaceholder() {
-                        heightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
-                        heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
-                        placeholderStart.css(sizeDimension, heightStart + 'px');
-                        placeholderEnd.css(sizeDimension, heightEnd + 'px');
+                        var newHeightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
+                        var newHeightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
+                        if (newHeightStart !== heightStart || newHeightEnd !== heightEnd) {
+                            placeholderStart.css(sizeDimension, newHeightStart + 'px');
+                            placeholderEnd.css(sizeDimension, newHeightEnd + 'px');
+                            heightStart = newHeightStart;
+                            heightEnd = newHeightEnd;
+                        }
                     }
                     function createElements(diff) {
                         updateVisibleRows();
