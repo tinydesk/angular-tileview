@@ -191,14 +191,10 @@ declare const angular: any;
           }
         
         function setPlaceholder() {
-          const newHeightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
-          const newHeightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
-          if (newHeightStart !== heightStart || newHeightEnd !== heightEnd) {
-            placeholderStart.css(sizeDimension, newHeightStart + 'px');
-            placeholderEnd.css(sizeDimension, newHeightEnd + 'px');
-            heightStart = newHeightStart;
-            heightEnd = newHeightEnd;
-          }
+          heightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
+          heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
+          placeholderStart.css(sizeDimension, heightStart + 'px');
+          placeholderEnd.css(sizeDimension, heightEnd + 'px');
         }
 
         function createElements(diff) {
