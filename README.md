@@ -83,3 +83,9 @@ The number of excess rows that are added to the DOM.
 Type: `number`. Default: `0`
 
 Debounce while scrolling in milliseconds. A value of `0` is interpreted as no debounce.
+
+#### disablePointerEvents
+
+Type: `number`
+
+Sets `pointer-events` to `none` during scrolling to improve performance. The value of this property is a number indicating the number of milliseconds that the component waits to determine if scrolling has ended.

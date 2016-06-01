@@ -17,7 +17,10 @@ declare const angular: any;
 	 * horizontally stacked.
    * 
    * The tile directive will automatically resize when the window is resized. If the size changed for some other reasons, a manual resize 
-   * can be triggered, by broadcasting the `td.tileview.resize` event.
+   * can be triggered, by broadcasting the `td.tileview.resize` event. There are two other events, that indicate the beginning and ending 
+   * of a scrolling movement. These events can be used to implement custom performance optimisations, because not every DOM change needs to
+   * be done while scrolling. The events are: `td.tileview.scrollStart` and `td.tileview.scrollEnd`. In order to detect when scrolling ends 
+   * a debounce delay is used. It can be configured with the `afterScrollDelay` options property.
 	 *
 	 * @param {Array=} items The items that are to be displayed in the tile view 
 	 * @param {object=} options An options object defining options that are relevant specifically for the tile ui such as
@@ -37,7 +40,8 @@ declare const angular: any;
    * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
    * - **overflow** - {number} - Number of rows that are rendered additionally to the visible rows to make the scrolling experience more fluent. **Default**: 2
    * - **debounce** - {number} - Debounce for the scroll event. A value of `0` is interpreted as no debounce. **Default**: 0.
-	 */
+   * - **afterScrollDelay** - {number} - Time to wait in order to decide whether a scroll movement has finished. **Default**: 100.
+   */
   mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', ($compile, $templateCache, $timeout, $window) => {
     return {
       restrict: 'E',
@@ -75,6 +79,7 @@ declare const angular: any;
           options.scrollEndOffset = def(options.scrollEndOffset, 0);
           options.overflow = def(options.overflow, 2);
           options.debounce = def(options.debounce, 0);
+          options.afterScrollDelay = def(options.afterScrollDelay, 100);
         });
         scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], ([width, height]) => {
           layout();
@@ -298,8 +303,24 @@ declare const angular: any;
           setPlaceholder();
         }
 
-        let debounceTimeout;
+        function detectScrollStartEnd() {
+          if (scope.options.afterScrollDelay !== undefined) {
+            if (scrollEndTimeout !== undefined) {
+              $timeout.cancel(scrollEndTimeout);
+            } else {
+              scope.$parent.$broadcast('td.tileview.scrollStart');
+            }
+            scrollEndTimeout = $timeout(() => {
+              // scrolling ends:
+              scrollEndTimeout = undefined;
+              scope.$parent.$broadcast('td.tileview.scrollEnd');
+            }, scope.options.afterScrollDelay, false);
+          }
+        }
+
+        let debounceTimeout, scrollEndTimeout;
         function onScroll() {
+          detectScrollStartEnd();
           if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
             if (debounceTimeout === undefined) {
               debounceTimeout = $timeout(function() {
