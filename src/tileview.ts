@@ -73,14 +73,14 @@ declare const angular: any;
         let cachedRowCount;
 
         let virtualRows = [];
-        
+
         function handleTileSizeChange() {
           forEachElement((el, i) => {
             el.css('width', scope.options.tileSize.width + 'px');
             el.css('height', scope.options.tileSize.height + 'px');
           });
         }
-        
+
         function handleTemplateUrlChange() {
           const template = $templateCache.get(scope.options.templateUrl);
           if (template !== undefined) {
@@ -90,7 +90,7 @@ declare const angular: any;
             console.error('Template url not found: ' + scope.options.templateUrl);
           }
         }
-        
+
         function handleAlignHorizontalChange() {
           if (scope.options.alignHorizontal) {
             sizeDimension = 'width';
@@ -109,14 +109,14 @@ declare const angular: any;
           options.overflow = def(options.overflow, 2);
           options.debounce = def(options.debounce, 0);
           options.afterScrollDelay = def(options.afterScrollDelay, 100);
-          
+
           if (options === currentOptions || options.templateUrl !== currentOptions.templateUrl) {
             handleTemplateUrlChange();
           }
           if (options === currentOptions || options.alignHorizontal !== currentOptions.alignHorizontal) {
             handleAlignHorizontalChange();
           }
-          layout();
+          layout(true);
           if (options === currentOptions || options.tileSize.width !== currentOptions.tileSize.width || options.tileSize.height !== currentOptions.tileSize.height) {
             handleTileSizeChange();
           }
@@ -125,7 +125,7 @@ declare const angular: any;
         var sizeDimension, orthogonalDimension;
         scope.$watchCollection('items', () => {
           lastScrollPosition = Number.NEGATIVE_INFINITY;
-          layout();
+          layout(true);
         });
         scope.$on('td.tileview.resize', resize);
 
@@ -226,7 +226,7 @@ declare const angular: any;
           itemContainer.append(row);
           return row;
         }
-        
+
         function removeRow() {
           itemContainer.children().eq(-1).remove();
         }
@@ -263,7 +263,7 @@ declare const angular: any;
         function createElements(numRows) {
           updateVisibleRows();
           const currentRowCount = itemContainer.children().length;
-          
+
           if (currentRowCount < numRows) {
             for (let i = currentRowCount; i < numRows; ++i) {
               addRow();
@@ -273,7 +273,7 @@ declare const angular: any;
               removeRow();
             }
           }
-          
+
           forEachRow(fillRow);
 
           virtualRows = [];
@@ -287,8 +287,7 @@ declare const angular: any;
         function resize(withDigest) {
           const newComponentSize = container[0].getBoundingClientRect();
           if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
-            layout();
-            if (withDigest === true) {
+            if (layout(false) && withDigest === true) {
               forEachElement(el => el.scope().$digest());
             }
           }
@@ -298,26 +297,38 @@ declare const angular: any;
           resize(true);
         }
 
+        function measure() {
+          const rect = container[0].getBoundingClientRect();
+          componentWidth = rect.width;
+          componentHeight = rect.height;
+          const itemWidth = scope.options.tileSize.width;
+          const width = rect.width;
+          const size = rect[sizeDimension];
+
+          const newItemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
+          const newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
+
+          const changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
+          itemsPerRow = newItemsPerRow;
+          cachedRowCount = newCachedRowCount;
+          rowCount = Math.ceil(scope.items.length / itemsPerRow);
+          return changes;
+        }
+
         let componentWidth = 0, componentHeight = 0;
-        function layout() {
+        function layout(alwaysLayout) {
           if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
-            const rect = container[0].getBoundingClientRect();
-            componentWidth = rect.width;
-            componentHeight = rect.height;
-            const itemWidth = scope.options.tileSize.width;
-            const width = container[0].getBoundingClientRect().width;
-            const size = rect[sizeDimension];
+            if (measure() || alwaysLayout) {
+              createElements(cachedRowCount);
 
-            itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
-            rowCount = Math.ceil(scope.items.length / itemsPerRow);
-            cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
-
-            createElements(cachedRowCount);
-
-            itemContainer.css(sizeDimension, rowCount * scope.options.tileSize[sizeDimension] + 'px');
-            itemContainer.css(orthogonalDimension, '100%');
-            //setPlaceholder();
+              itemContainer.css(sizeDimension, rowCount * scope.options.tileSize[sizeDimension] + 'px');
+              itemContainer.css(orthogonalDimension, '100%');
+              //setPlaceholder();
+              scope.$parent.$broadcast('td.tileview.layout');
+              return true;
+            }
           }
+          return false;
         }
 
         function update() {

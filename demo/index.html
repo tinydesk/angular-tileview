@@ -116,6 +116,11 @@
           $scope.remove = function(item) {
             $scope.data.splice($scope.data.indexOf(item), 1);
           };
+          
+          $scope.$on('td.tileview.layout', function() {
+            console.log('layout');
+            console.trace();
+          });
         }]);
     </script>
     <script type="text/ng-template" id="SimpleCell">
