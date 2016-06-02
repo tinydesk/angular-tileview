@@ -1,6 +1,6 @@
 {
   "name": "angular-tileview",
-  "version": "0.5.8",
+  "version": "0.6.0",
   "description": "A tileview for angular",
   "main": "gulpfile.js",
   "scripts": {

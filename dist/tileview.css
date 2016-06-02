@@ -3,6 +3,9 @@
   overflow-y: auto;
   overflow-x: hidden;
 }
+.tile-view .item-container {
+  position: relative;
+}
 .tile-view.horizontal {
   white-space: nowrap;
   overflow-x: auto;
@@ -12,6 +15,6 @@
   display: inline-block;
   height: 100%;
 }
-.tile-view.horizontal .item-container > * {
+.tile-view.horizontal .item-container > div > * {
   white-space: normal;
 }

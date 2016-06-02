@@ -3,6 +3,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   
+  .item-container {
+      position: relative;
+  }
+  
   &.horizontal {
     white-space: nowrap;
     overflow-x: auto;
@@ -14,7 +18,7 @@
     }
     
     .item-container {
-      > * {
+      > div > * {
         white-space: normal;
       }
     }

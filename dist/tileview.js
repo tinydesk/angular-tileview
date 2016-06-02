@@ -52,9 +52,7 @@
                     scope.tileStyle.marginBottom = "4px";
                     scope.tileStyle.float = "left";
                     var container = elem.children();
-                    var placeholderStart = container.children().eq(0);
-                    var itemContainer = container.children().eq(1);
-                    var placeholderEnd = container.children().eq(2);
+                    var itemContainer = container.children().eq(0);
                     var linkFunction;
                     var heightStart = 0;
                     var heightEnd = 0;
@@ -63,6 +61,7 @@
                     var itemsPerRow;
                     var rowCount;
                     var cachedRowCount;
+                    var virtualRows = [];
                     scope.$watch('options', function (options) {
                         options.scrollEndOffset = def(options.scrollEndOffset, 0);
                         options.overflow = def(options.overflow, 2);
@@ -88,24 +87,18 @@
                             console.error('Template url not found: ' + templateUrl);
                         }
                     });
-                    var sizeDimension;
+                    var sizeDimension, orthogonalDimension;
                     scope.$watch('options.alignHorizontal', function (alignHorizontal) {
                         if (alignHorizontal) {
                             sizeDimension = 'width';
+                            orthogonalDimension = 'height';
                             elem.children().addClass('horizontal');
                         }
                         else {
                             sizeDimension = 'height';
+                            orthogonalDimension = 'width';
                             elem.children().removeClass('horizontal');
                         }
-                        placeholderStart.css({
-                            width: '100%',
-                            height: '100%'
-                        });
-                        placeholderEnd.css({
-                            width: '100%',
-                            height: '100%'
-                        });
                         layout();
                     });
                     scope.$watchCollection('items', function () {
@@ -126,19 +119,27 @@
                         el.remove();
                     }
                     function removeAll() {
-                        var numOfElements = itemElementCount();
-                        for (var i = 0; i < numOfElements; ++i) {
-                            removeElement(itemContainer.children().eq(0));
-                        }
+                        forEachElement(removeElement);
+                        forEachRow(removeRow);
                     }
                     function forEachElement(fn) {
-                        var numOfElements = itemElementCount();
+                        forEachRow(function (row) {
+                            for (var i = 0; i < row.children().length; ++i) {
+                                fn(row.children().eq(i), i);
+                            }
+                        });
+                    }
+                    function forEachRow(fn) {
+                        var numOfElements = visibleRowCount();
                         for (var i = 0; i < numOfElements; ++i) {
                             fn(itemContainer.children().eq(i), i);
                         }
                     }
-                    function itemElementCount() {
+                    function visibleRowCount() {
                         return itemContainer.children().length;
+                    }
+                    function itemElementCount() {
+                        return visibleRowCount() * itemsPerRow;
                     }
                     var lastScrollPosition = Number.NEGATIVE_INFINITY;
                     function updateVisibleRows() {
@@ -158,13 +159,15 @@
                         endRow = startRow + cachedRowCount;
                         lastScrollPosition = scrollPosition;
                     }
-                    function updateItem(elem, item, digest) {
+                    function updateItem(elem, index, digest) {
+                        var item = scope.items[index];
                         if (item !== undefined) {
                             if (elem.css('display') === 'none') {
                                 elem.css('display', 'inline-block');
                             }
                             var itemScope = elem.scope();
                             itemScope.item = item;
+                            itemScope.$index = index;
                             if (digest === true) {
                                 itemScope.$digest();
                             }
@@ -173,36 +176,69 @@
                             elem.css('display', 'none');
                         }
                     }
-                    function setPlaceholder() {
-                        heightStart = Math.max(startRow * scope.options.tileSize[sizeDimension], 0);
-                        heightEnd = Math.max((rowCount - endRow) * scope.options.tileSize[sizeDimension], 0);
-                        placeholderStart.css(sizeDimension, heightStart + 'px');
-                        placeholderEnd.css(sizeDimension, heightEnd + 'px');
+                    function updateRow(el, rowIndex, digest) {
+                        for (var i = 0; i < el.children().length; ++i) {
+                            updateItem(el.children().eq(i), rowIndex * itemsPerRow + i, digest);
+                        }
+                        var translate = scope.options.alignHorizontal ? 'translateX' : 'translateY';
+                        el.css('transform', translate + '(' + Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0) + 'px)');
                     }
-                    function createElements(diff) {
+                    function addRow() {
+                        var row = angular.element('<div></div>');
+                        row.css('position', 'absolute');
+                        itemContainer.append(row);
+                        return row;
+                    }
+                    function removeRow() {
+                        itemContainer.children().eq(-1).remove();
+                    }
+                    function addElementToRow(row) {
+                        linkFunction(scope.$parent.$new(), function (clonedElement) {
+                            clonedElement.css({
+                                width: scope.options.tileSize.width + 'px',
+                                height: scope.options.tileSize.height + 'px',
+                                display: 'inline-block',
+                                'vertical-align': 'top'
+                            });
+                            row.append(clonedElement);
+                        });
+                    }
+                    function fillRow(row) {
+                        var currentRowLength = row.children().length;
+                        if (currentRowLength < itemsPerRow) {
+                            for (var i = currentRowLength; i < itemsPerRow; ++i) {
+                                addElementToRow(row);
+                            }
+                        }
+                        else if (currentRowLength > itemsPerRow) {
+                            for (var i = currentRowLength; i > itemsPerRow; --i) {
+                                removeElementFromRow(row);
+                            }
+                        }
+                    }
+                    function removeElementFromRow(row) {
+                        removeElement(row.children().eq(-1));
+                    }
+                    function createElements(numRows) {
                         updateVisibleRows();
-                        if (diff > 0) {
-                            // add additional cells:
-                            for (var i = 0; i < diff; ++i) {
-                                linkFunction(scope.$parent.$new(), function (clonedElement) {
-                                    clonedElement.css({
-                                        width: scope.options.tileSize.width + 'px',
-                                        height: scope.options.tileSize.height + 'px',
-                                        display: 'inline-block',
-                                        'vertical-align': 'top'
-                                    });
-                                    itemContainer.append(clonedElement);
-                                });
+                        var currentRowCount = itemContainer.children().length;
+                        if (currentRowCount < numRows) {
+                            for (var i = currentRowCount; i < numRows; ++i) {
+                                addRow();
                             }
                         }
-                        else if (diff < 0) {
-                            // remove cells that are not longer needed:
-                            while (diff++ < 0) {
-                                removeElement(itemContainer.children().eq(-1));
+                        else if (currentRowCount > numRows) {
+                            for (var i = currentRowCount; i > numRows; --i) {
+                                removeRow();
                             }
                         }
+                        forEachRow(fillRow);
+                        virtualRows = [];
                         var startIndex = startRow * itemsPerRow;
-                        forEachElement(function (el, i) { updateItem(el, scope.items[startIndex + i], false); });
+                        forEachRow(function (el, i) {
+                            virtualRows.push(el);
+                            updateRow(el, startRow + i, false);
+                        });
                     }
                     function resize(withDigest) {
                         var newComponentSize = container[0].getBoundingClientRect();
@@ -223,49 +259,45 @@
                             componentWidth = rect.width;
                             componentHeight = rect.height;
                             var itemWidth = scope.options.tileSize.width;
-                            var width = itemContainer[0].getBoundingClientRect().width;
+                            var width = container[0].getBoundingClientRect().width;
                             var size = rect[sizeDimension];
                             itemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                             rowCount = Math.ceil(scope.items.length / itemsPerRow);
                             cachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
-                            createElements(itemsPerRow * cachedRowCount - itemElementCount());
-                            setPlaceholder();
+                            createElements(cachedRowCount);
+                            itemContainer.css(sizeDimension, rowCount * scope.options.tileSize[sizeDimension] + 'px');
+                            itemContainer.css(orthogonalDimension, '100%');
                         }
                     }
                     function update() {
-                        updateVisibleRows();
+                        animationFrameRequested = false;
                         if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
                             if (startRow > renderedEndRow || endRow < renderedStartRow) {
-                                forEachElement(function (el, i) { return updateItem(el, scope.items[startRow * itemsPerRow + i], true); });
+                                virtualRows.forEach(function (el, i) { return updateRow(el, startRow + i, true); });
                             }
                             else {
                                 var intersectionStart = Math.max(startRow, renderedStartRow);
                                 var intersectionEnd = Math.min(endRow, renderedEndRow);
                                 if (endRow > intersectionEnd) {
-                                    var j = 0;
-                                    for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                                        updateItem(itemContainer.children().eq(j++), scope.items[i], true);
-                                    }
-                                    for (var i = intersectionEnd * itemsPerRow; i < endRow * itemsPerRow; ++i) {
-                                        var itemElement = itemContainer.children().eq(0).detach();
-                                        itemContainer.append(itemElement);
+                                    // scrolling downwards
+                                    for (var i = intersectionEnd; i < endRow; ++i) {
+                                        var e = virtualRows.shift();
+                                        updateRow(e, i, true);
+                                        virtualRows.push(e);
                                     }
                                 }
                                 else if (startRow < intersectionStart) {
-                                    var j = -1;
-                                    for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                                        updateItem(itemContainer.children().eq(j--), scope.items[i], true);
-                                    }
-                                    for (var i = intersectionStart * itemsPerRow - 1; i >= startRow * itemsPerRow; --i) {
-                                        var itemElement = itemContainer.children().eq(-1).detach();
-                                        itemContainer.prepend(itemElement);
+                                    // scrolling upwards
+                                    for (var i = intersectionStart - 1; i >= startRow; --i) {
+                                        var e = virtualRows.pop();
+                                        updateRow(e, i, true);
+                                        virtualRows.unshift(e);
                                     }
                                 }
                             }
                             renderedStartRow = startRow;
                             renderedEndRow = endRow;
                         }
-                        setPlaceholder();
                     }
                     function detectScrollStartEnd() {
                         if (scope.options.afterScrollDelay !== undefined) {
@@ -279,12 +311,14 @@
                                 // scrolling ends:
                                 scrollEndTimeout = undefined;
                                 scope.$parent.$broadcast('td.tileview.scrollEnd');
-                            }, scope.options.afterScrollDelay, false);
+                            }, scope.options.afterScrollDelay, true);
                         }
                     }
                     var debounceTimeout, scrollEndTimeout;
+                    var animationFrameRequested = false;
                     function onScroll() {
                         detectScrollStartEnd();
+                        updateVisibleRows();
                         if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
                             if (debounceTimeout === undefined) {
                                 debounceTimeout = $timeout(function () {
@@ -294,7 +328,10 @@
                             }
                         }
                         else {
-                            update();
+                            if (!animationFrameRequested) {
+                                animationFrameRequested = true;
+                                requestAnimationFrame(update);
+                            }
                         }
                     }
                     container.on('scroll', onScroll);
@@ -307,4 +344,4 @@
     }
 })();
 
-angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view horizontal\">\n    <div class=\"placeholder-start\">\n\n    </div>\n    <div class=\"item-container\">\n\n    </div>\n    <div class=\"placeholder-end\">\n\n    </div>\n</div>");}]);
+angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view horizontal\">\n    <div class=\"item-container\">\n\n    </div>\n</div>");}]);
