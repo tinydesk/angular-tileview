@@ -73,33 +73,26 @@ declare const angular: any;
         let cachedRowCount;
 
         let virtualRows = [];
-
-        scope.$watch('options', options => {
-          options.scrollEndOffset = def(options.scrollEndOffset, 0);
-          options.overflow = def(options.overflow, 2);
-          options.debounce = def(options.debounce, 0);
-          options.afterScrollDelay = def(options.afterScrollDelay, 100);
-        });
-        scope.$watchGroup(['options.tileSize.width', 'options.tileSize.height'], ([width, height]) => {
-          layout();
+        
+        function handleTileSizeChange() {
           forEachElement((el, i) => {
-            el.css('width', width + 'px');
-            el.css('height', height + 'px');
+            el.css('width', scope.options.tileSize.width + 'px');
+            el.css('height', scope.options.tileSize.height + 'px');
           });
-        });
-        scope.$watch('options.templateUrl', templateUrl => {
-          const template = $templateCache.get(templateUrl);
+        }
+        
+        function handleTemplateUrlChange() {
+          const template = $templateCache.get(scope.options.templateUrl);
           if (template !== undefined) {
             linkFunction = $compile(template);
             removeAll();
-            layout();
           } else {
-            console.error('Template url not found: ' + templateUrl);
+            console.error('Template url not found: ' + scope.options.templateUrl);
           }
-        });
-        var sizeDimension, orthogonalDimension;
-        scope.$watch('options.alignHorizontal', (alignHorizontal) => {
-          if (alignHorizontal) {
+        }
+        
+        function handleAlignHorizontalChange() {
+          if (scope.options.alignHorizontal) {
             sizeDimension = 'width';
             orthogonalDimension = 'height';
             elem.children().addClass('horizontal');
@@ -108,13 +101,32 @@ declare const angular: any;
             orthogonalDimension = 'width';
             elem.children().removeClass('horizontal');
           }
+        }
+
+        scope.$watch('options', (options, currentOptions) => {
+          // set defaults:
+          options.scrollEndOffset = def(options.scrollEndOffset, 0);
+          options.overflow = def(options.overflow, 2);
+          options.debounce = def(options.debounce, 0);
+          options.afterScrollDelay = def(options.afterScrollDelay, 100);
+          
+          if (options === currentOptions || options.templateUrl !== currentOptions.templateUrl) {
+            handleTemplateUrlChange();
+          }
+          if (options === currentOptions || options.alignHorizontal !== currentOptions.alignHorizontal) {
+            handleAlignHorizontalChange();
+          }
           layout();
-        });
+          if (options === currentOptions || options.tileSize.width !== currentOptions.tileSize.width || options.tileSize.height !== currentOptions.tileSize.height) {
+            handleTileSizeChange();
+          }
+        }, true);
+
+        var sizeDimension, orthogonalDimension;
         scope.$watchCollection('items', () => {
           lastScrollPosition = Number.NEGATIVE_INFINITY;
           layout();
         });
-        scope.$watch('options.overflow', layout);
         scope.$on('td.tileview.resize', resize);
 
         angular.element($window).on('resize', onResize);
