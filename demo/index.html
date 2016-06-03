@@ -53,6 +53,10 @@
           <label for="overflow">Overflow:</label>
           <input id="overflow" class="form-control" type="number" ng-model="options.overflow">
         </fieldset>
+        <fieldset class="form-group">
+          <label for="horizontal">Infinite Scrolling:</label>
+          <input id="horizontal" class="form-control" type="checkbox" ng-model="infiniteScrolling">
+        </fieldset>
         <button type="button" class="btn btn-default" ng-click="fixSize()">Fix size</button>
         <button type="button" class="btn btn-default" ng-click="changeData()">Change Data</button>
         <button type="button" class="btn btn-default" ng-click="insert()">Insert</button>
@@ -67,16 +71,20 @@
         .controller('demoCtrl', ['$scope', function($scope) {
           
           function createData(numItems) {
-            $scope.data = [];
+            var len = ($scope.data) ? $scope.data.length : 0;
+            var data = [];
             for (var i = 0; i < numItems; ++i) {
-              $scope.data[i] = {
-                id: i,
-                name: "Some Test Name " + i
+              data[i] = {
+                id: len + i,
+                name: "Some Test Name " + (len + i)
               }
             }
+            return data;
           }
           
-          $scope.$watch('numItems', createData);
+          $scope.$watch('numItems', function(numItems) {
+            $scope.data = createData(numItems);
+          });
           $scope.numItems = 1000;
           
           $scope.options = {
@@ -87,6 +95,9 @@
             },
             onScrollEnd: function() {
               console.log('scroll end');
+              if ($scope.infiniteScrolling) {
+                $scope.data = $scope.data.concat(createData($scope.numItems));
+              }
             }
           }
           
