@@ -282,6 +282,8 @@ declare const angular: any;
             virtualRows.push(el);
             updateRow(el, startRow + i, false);
           });
+          renderedStartRow = startRow;
+          renderedEndRow = endRow;
         }
 
         function resize(withDigest) {
