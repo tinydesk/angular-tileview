@@ -63,7 +63,7 @@
                     var cachedRowCount;
                     var virtualRows = [];
                     function handleTileSizeChange() {
-                        forEachElement(function (el, i) {
+                        forEachElement(function (el) {
                             el.css('width', scope.options.tileSize.width + 'px');
                             el.css('height', scope.options.tileSize.height + 'px');
                         });
@@ -129,16 +129,16 @@
                         forEachRow(removeRow);
                     }
                     function forEachElement(fn) {
-                        forEachRow(function (row) {
+                        forEachRow(function (row, rowIndex) {
                             for (var i = 0; i < row.children().length; ++i) {
-                                fn(row.children().eq(i), i);
+                                fn(row.children().eq(i), rowIndex * itemsPerRow + i);
                             }
                         });
                     }
                     function forEachRow(fn) {
-                        var numOfElements = visibleRowCount();
-                        for (var i = 0; i < numOfElements; ++i) {
-                            fn(itemContainer.children().eq(i), i);
+                        var numOfRows = visibleRowCount();
+                        for (var i = 0; i < numOfRows; ++i) {
+                            fn(itemContainer.children().eq(i), startRow + i);
                         }
                     }
                     function visibleRowCount() {
@@ -243,7 +243,7 @@
                         var startIndex = startRow * itemsPerRow;
                         forEachRow(function (el, i) {
                             virtualRows.push(el);
-                            updateRow(el, startRow + i, false);
+                            updateRow(el, i, false);
                         });
                         renderedStartRow = startRow;
                         renderedEndRow = endRow;

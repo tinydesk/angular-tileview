@@ -75,7 +75,7 @@ declare const angular: any;
         let virtualRows = [];
 
         function handleTileSizeChange() {
-          forEachElement((el, i) => {
+          forEachElement(el => {
             el.css('width', scope.options.tileSize.width + 'px');
             el.css('height', scope.options.tileSize.height + 'px');
           });
@@ -149,17 +149,17 @@ declare const angular: any;
         }
 
         function forEachElement(fn) {
-          forEachRow(row => {
+          forEachRow((row, rowIndex) => {
             for (let i = 0; i < row.children().length; ++i) {
-              fn(row.children().eq(i), i);
+              fn(row.children().eq(i), rowIndex*itemsPerRow + i);
             }
           });
         }
 
         function forEachRow(fn) {
-          const numOfElements = visibleRowCount();
-          for (let i = 0; i < numOfElements; ++i) {
-            fn(itemContainer.children().eq(i), i);
+          const numOfRows = visibleRowCount();
+          for (let i = 0; i < numOfRows; ++i) {
+            fn(itemContainer.children().eq(i), startRow + i);
           }
         }
 
@@ -280,7 +280,7 @@ declare const angular: any;
           const startIndex = startRow * itemsPerRow;
           forEachRow((el, i) => {
             virtualRows.push(el);
-            updateRow(el, startRow + i, false);
+            updateRow(el, i, false);
           });
           renderedStartRow = startRow;
           renderedEndRow = endRow;
