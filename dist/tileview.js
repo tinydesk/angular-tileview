@@ -183,14 +183,21 @@
                         }
                     }
                     function updateRow(el, rowIndex, digest) {
-                        for (var i = 0; i < el.children().length; ++i) {
-                            updateItem(el.children().eq(i), rowIndex * itemsPerRow + i, digest);
+                        var ch = el.children();
+                        for (var i = 0; i < ch.length; ++i) {
+                            updateItem(ch.eq(i), rowIndex * itemsPerRow + i, digest);
                         }
-                        var translate = scope.options.alignHorizontal ? 'translateX' : 'translateY';
-                        el.css('transform', translate + '(' + Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0) + 'px)');
+                        var translate = Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0);
+                        //el.css('transform', `${translate}(${Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0)}px), translateZ(${rowIndex})`);
+                        if (scope.options.alignHorizontal) {
+                            el.css('transform', "translate3d(" + translate + "px, 0px, 0)");
+                        }
+                        else {
+                            el.css('transform', "translate3d(0px, " + translate + "px, 0)");
+                        }
                     }
                     function addRow() {
-                        var row = angular.element('<div></div>');
+                        var row = angular.element('<div class="td-row"></div>');
                         row.css('position', 'absolute');
                         itemContainer.append(row);
                         return row;
@@ -330,7 +337,7 @@
                                 // scrolling ends:
                                 scrollEndTimeout = undefined;
                                 scope.$parent.$broadcast('td.tileview.scrollEnd');
-                            }, scope.options.afterScrollDelay, true);
+                            }, scope.options.afterScrollDelay, false);
                         }
                     }
                     var debounceTimeout, scrollEndTimeout;

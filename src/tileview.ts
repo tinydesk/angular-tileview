@@ -213,15 +213,21 @@ declare const angular: any;
         }
 
         function updateRow(el, rowIndex, digest) {
-          for (let i = 0; i < el.children().length; ++i) {
-            updateItem(el.children().eq(i), rowIndex * itemsPerRow + i, digest);
+          const ch = el.children();
+          for (let i = 0; i < ch.length; ++i) {
+            updateItem(ch.eq(i), rowIndex * itemsPerRow + i, digest);
           }
-          const translate = scope.options.alignHorizontal ? 'translateX' : 'translateY';
-          el.css('transform', translate + '(' + Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0) + 'px)')
+          const translate = Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0);
+          //el.css('transform', `${translate}(${Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0)}px), translateZ(${rowIndex})`);
+          if (scope.options.alignHorizontal) {
+            el.css('transform', `translate3d(${translate}px, 0px, 0)`);
+          } else {
+            el.css('transform', `translate3d(0px, ${translate}px, 0)`);
+          }
         }
 
         function addRow() {
-          const row = angular.element('<div></div>');
+          const row = angular.element('<div class="td-row"></div>');
           row.css('position', 'absolute');
           itemContainer.append(row);
           return row;
@@ -376,7 +382,7 @@ declare const angular: any;
               // scrolling ends:
               scrollEndTimeout = undefined;
               scope.$parent.$broadcast('td.tileview.scrollEnd');
-            }, scope.options.afterScrollDelay, true);
+            }, scope.options.afterScrollDelay, false);
           }
         }
 

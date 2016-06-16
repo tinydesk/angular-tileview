@@ -83,6 +83,7 @@
           }
           
           $scope.$watch('numItems', function(numItems) {
+            $scope.data = [];
             $scope.data = createData(numItems);
           });
           $scope.numItems = 1000;
