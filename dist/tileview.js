@@ -81,12 +81,14 @@
                     function handleAlignHorizontalChange() {
                         if (scope.options.alignHorizontal) {
                             sizeDimension = 'width';
-                            orthogonalDimension = 'height';
+                            minSizeDimension = 'min-width';
+                            orthogonalDimension = 'min-height';
                             elem.children().addClass('horizontal');
                         }
                         else {
                             sizeDimension = 'height';
-                            orthogonalDimension = 'width';
+                            minSizeDimension = 'min-height';
+                            orthogonalDimension = 'min-width';
                             elem.children().removeClass('horizontal');
                         }
                     }
@@ -107,7 +109,7 @@
                             handleTileSizeChange();
                         }
                     }, true);
-                    var sizeDimension, orthogonalDimension;
+                    var sizeDimension, minSizeDimension, orthogonalDimension;
                     scope.$watchCollection('items', function () {
                         lastScrollPosition = Number.NEGATIVE_INFINITY;
                         layout(true);
@@ -286,7 +288,7 @@
                         if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
                             if (measure() || alwaysLayout) {
                                 createElements(cachedRowCount);
-                                itemContainer.css(sizeDimension, rowCount * scope.options.tileSize[sizeDimension] + 'px');
+                                itemContainer.css(minSizeDimension, rowCount * scope.options.tileSize[sizeDimension] + 'px');
                                 itemContainer.css(orthogonalDimension, '100%');
                                 //setPlaceholder();
                                 scope.$parent.$broadcast('td.tileview.layout');
