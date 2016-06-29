@@ -294,17 +294,17 @@ declare const angular: any;
           renderedEndRow = endRow;
         }
 
-        function resize(withDigest) {
+        function resize() {
           const newComponentSize = container[0].getBoundingClientRect();
           if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
-            if (layout(false) && withDigest === true) {
+            if (layout(false)) {
               forEachElement(el => el.scope().$digest());
             }
           }
         }
 
         function onResize() {
-          resize(true);
+          resize();
         }
 
         function measure() {

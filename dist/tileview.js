@@ -257,16 +257,16 @@
                         renderedStartRow = startRow;
                         renderedEndRow = endRow;
                     }
-                    function resize(withDigest) {
+                    function resize() {
                         var newComponentSize = container[0].getBoundingClientRect();
                         if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
-                            if (layout(false) && withDigest === true) {
+                            if (layout(false)) {
                                 forEachElement(function (el) { return el.scope().$digest(); });
                             }
                         }
                     }
                     function onResize() {
-                        resize(true);
+                        resize();
                     }
                     function measure() {
                         var rect = container[0].getBoundingClientRect();
