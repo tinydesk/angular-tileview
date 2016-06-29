@@ -114,7 +114,14 @@
                         lastScrollPosition = Number.NEGATIVE_INFINITY;
                         layout(true);
                     });
-                    scope.$on('td.tileview.resize', resize);
+                    var resizeTimeout;
+                    scope.$on('td.tileview.resize', function () {
+                        // this might be called within a $digest
+                        if (resizeTimeout) {
+                            $timeout.cancel(resizeTimeout);
+                        }
+                        resizeTimeout = $timeout(resize, 50, false);
+                    });
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
                         angular.element($window).off('resize', onResize);

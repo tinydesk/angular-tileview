@@ -129,7 +129,15 @@ declare const angular: any;
           lastScrollPosition = Number.NEGATIVE_INFINITY;
           layout(true);
         });
-        scope.$on('td.tileview.resize', resize);
+
+        let resizeTimeout;
+        scope.$on('td.tileview.resize', () => {
+          // this might be called within a $digest
+          if (resizeTimeout) {
+            $timeout.cancel(resizeTimeout);
+          }
+          resizeTimeout = $timeout(resize, 50, false);
+        });
 
         angular.element($window).on('resize', onResize);
 
