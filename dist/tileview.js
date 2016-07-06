@@ -1,6 +1,59 @@
 (function () {
     'use strict';
     var mod = angular.module('td.tileview', []);
+    mod.factory('TileViewUtil', ['$document', function ($document) {
+            function getRTLHorizontalScrollType() {
+                var body = $document.find('body');
+                var tmpElem = angular.element('<div dir="rtl" style="font-size: 14px; width: 1px; height: 1px; position: absolute; top: -1000px; overflow: scroll">A</div>');
+                body.append(tmpElem);
+                var type = 'reverse';
+                if (tmpElem[0].scrollLeft > 0) {
+                    type = 'default';
+                }
+                else {
+                    tmpElem[0].scrollLeft = 1;
+                    if (tmpElem[0].scrollLeft === 0) {
+                        type = 'negative';
+                    }
+                }
+                tmpElem.remove();
+                return type;
+            }
+            //Copyright 2010 Nicholas C. Zakas. All rights reserved.
+            //MIT Licensed
+            function getDirection(element) {
+                var result = null;
+                if (element) {
+                    if (window.getComputedStyle) {
+                        result = window.getComputedStyle(element, null).direction;
+                    }
+                    else if (element.currentStyle) {
+                        result = element.currentStyle.direction;
+                    }
+                }
+                return result;
+            }
+            var rtlHorizontalScrollType = getRTLHorizontalScrollType();
+            var getHorizontalScrollPosition = function (element, isRtl) {
+                if (isRtl) {
+                    switch (rtlHorizontalScrollType) {
+                        case 'default':
+                            return element.scrollWidth - element.clientWidth - element.scrollLeft;
+                        case 'reverse':
+                            return element.scrollLeft;
+                        case 'negative':
+                            return -element.scrollLeft;
+                    }
+                }
+                else {
+                    return element.scrollLeft;
+                }
+            };
+            return {
+                getHorizontalScrollPosition: getHorizontalScrollPosition,
+                getDirection: getDirection
+            };
+        }]);
     /**
        * @ngdoc directive
        * @name td.tileview.directive:tdTileview
@@ -37,7 +90,7 @@
      * - **debounce** - {number} - Debounce for the scroll event. A value of `0` is interpreted as no debounce. **Default**: 0.
      * - **afterScrollDelay** - {number} - Time to wait in order to decide whether a scroll movement has finished. **Default**: 100.
      */
-    mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', function ($compile, $templateCache, $timeout, $window) {
+    mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', 'TileViewUtil', function ($compile, $templateCache, $timeout, $window, TileViewUtil) {
             return {
                 restrict: 'E',
                 scope: {
@@ -62,6 +115,7 @@
                     var rowCount;
                     var cachedRowCount;
                     var virtualRows = [];
+                    var isRtl = false;
                     function handleTileSizeChange() {
                         forEachElement(function (el) {
                             el.css('width', scope.options.tileSize.width + 'px');
@@ -122,6 +176,9 @@
                         }
                         resizeTimeout = $timeout(resize, 50, false);
                     });
+                    scope.$on('td.tileview.update', function () {
+                        layout(true);
+                    });
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
                         angular.element($window).off('resize', onResize);
@@ -164,8 +221,10 @@
                         var rect = container[0].getBoundingClientRect();
                         var itemSize = scope.options.tileSize[sizeDimension];
                         var maxScrollPosition = rowCount * itemSize - rect[sizeDimension];
-                        var scrollDimension = scope.options.alignHorizontal ? 'scrollLeft' : 'scrollTop';
-                        var scrollPosition = container[0][scrollDimension];
+                        isRtl = TileViewUtil.getDirection(itemContainer[0]) === 'rtl';
+                        var scrollPosition = scope.options.alignHorizontal ?
+                            TileViewUtil.getHorizontalScrollPosition(container[0], isRtl) :
+                            container[0].scrollTop;
                         var scrollEndThreshold = maxScrollPosition - scope.options.scrollEndOffset * itemSize;
                         if (scrollPosition >= scrollEndThreshold && !(lastScrollPosition >= scrollEndThreshold) && scope.options.onScrollEnd !== undefined) {
                             scope.options.onScrollEnd();
@@ -199,6 +258,9 @@
                         var translate = Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0);
                         //el.css('transform', `${translate}(${Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0)}px), translateZ(${rowIndex})`);
                         if (scope.options.alignHorizontal) {
+                            if (isRtl) {
+                                translate = -translate;
+                            }
                             el.css('transform', "translate3d(" + translate + "px, 0px, 0)");
                         }
                         else {

@@ -17,7 +17,7 @@
   </head>
   <body style="height: 100vh;">
 
-    <div ng-controller="demoCtrl" class="demo">
+    <div ng-controller="demoCtrl" class="demo" dir="{{ rtl ? 'rtl' : 'ltr' }}">
       <td-tileview items="data" options="options">
       </td-tileview>
       
@@ -57,6 +57,10 @@
           <label for="horizontal">Infinite Scrolling:</label>
           <input id="horizontal" class="form-control" type="checkbox" ng-model="infiniteScrolling">
         </fieldset>
+        <fieldset class="form-group">
+          <label for="horizontal">Right To Left:</label>
+          <input id="horizontal" class="form-control" type="checkbox" ng-model="rtl">
+        </fieldset>
         <button type="button" class="btn btn-default" ng-click="fixSize()">Fix size</button>
         <button type="button" class="btn btn-default" ng-click="changeData()">Change Data</button>
         <button type="button" class="btn btn-default" ng-click="insert()">Insert</button>
@@ -68,7 +72,7 @@
     <script type="application/javascript" src="dist/tileview.js"></script>
     <script type="application/javascript">
       angular.module('demoApp', ['td.tileview'])
-        .controller('demoCtrl', ['$scope', function($scope) {
+        .controller('demoCtrl', ['$scope', '$timeout', function($scope, $timeout) {
           
           function createData(numItems) {
             var len = ($scope.data) ? $scope.data.length : 0;
@@ -131,7 +135,12 @@
           
           $scope.$on('td.tileview.layout', function() {
             console.log('layout');
-            console.trace();
+          });
+
+          $scope.$watch('rtl', function() {
+            $timeout(function() {
+              $scope.$broadcast('td.tileview.update');
+            }, 0);
           });
         }]);
     </script>

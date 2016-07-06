@@ -89,3 +89,26 @@ Debounce while scrolling in milliseconds. A value of `0` is interpreted as no de
 Type: `number`
 
 Sets `pointer-events` to `none` during scrolling to improve performance. The value of this property is a number indicating the number of milliseconds that the component waits to determine if scrolling has ended.
+
+## Events
+
+### Manual Resize
+
+Event: `td.tileview.resize`
+Type: Input
+
+A manual resize will trigger a layout of the tiles if the new size changes the tile configuration.
+
+### Manual Update
+
+Event: `td.tileview.update`
+Type: Input
+
+A manual update will always perform a layout, even if the number of tiles stays the same. This can be, for example, used to force an update after the element's direction value has changed.
+
+### Layout
+
+Event: `td.tileview.layout`
+Type: Output
+
+This event is emitted by the tileview whenever it performs a layout.
