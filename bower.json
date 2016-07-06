@@ -1,7 +1,10 @@
 {
   "name": "angular-tileview",
   "description": "A tileview for angular",
-  "main": ["dist/tileview.js", "dist/tileview.css"],
+  "main": [
+    "dist/tileview.js",
+    "dist/tileview.css"
+  ],
   "authors": [
     "Hannes Widmoser <widmoser@gmail.com>"
   ],
@@ -13,5 +16,8 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "angular-scroll-rtl": "^0.1.1"
+  }
 }
