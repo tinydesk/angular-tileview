@@ -15,7 +15,7 @@
   </head>
   <body style="height: 100vh;">
 
-    <div ng-controller="demoCtrl" class="demo">
+    <div ng-controller="demoCtrl" class="demo" dir="{{ rtl ? 'rtl' : 'ltr' }}">
       <td-tileview items="data" options="options">
       </td-tileview>
       
@@ -43,6 +43,22 @@
           <label for="horizontal">Align Horizontal:</label>
           <input id="horizontal" class="form-control" type="checkbox" ng-model="options.alignHorizontal">
         </fieldset>
+        <fieldset class="form-group">
+          <label for="debounce">Debounce:</label>
+          <input id="debounce" class="form-control" type="number" ng-model="options.debounce">
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="overflow">Overflow:</label>
+          <input id="overflow" class="form-control" type="number" ng-model="options.overflow">
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="horizontal">Infinite Scrolling:</label>
+          <input id="horizontal" class="form-control" type="checkbox" ng-model="infiniteScrolling">
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="horizontal">Right To Left:</label>
+          <input id="horizontal" class="form-control" type="checkbox" ng-model="rtl">
+        </fieldset>
         <button type="button" class="btn btn-default" ng-click="fixSize()">Fix size</button>
         <button type="button" class="btn btn-default" ng-click="changeData()">Change Data</button>
         <button type="button" class="btn btn-default" ng-click="insert()">Insert</button>
@@ -51,22 +67,28 @@
     
     <!-- Le javascript -->
     <script type="application/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+    <script type="application/javascript" src="https://rawgit.com/tinydesk/angular-scroll-rtl/master/dist/angular-scroll-rtl.js"></script>
     <script type="application/javascript" src="https://rawgit.com/tinydesk/angular-tileview/master/dist/tileview.js"></script>
     <script type="application/javascript">
       angular.module('demoApp', ['td.tileview'])
-        .controller('demoCtrl', ['$scope', function($scope) {
+        .controller('demoCtrl', ['$scope', '$timeout', function($scope, $timeout) {
           
           function createData(numItems) {
-            $scope.data = [];
+            var len = ($scope.data) ? $scope.data.length : 0;
+            var data = [];
             for (var i = 0; i < numItems; ++i) {
-              $scope.data[i] = {
-                id: i,
-                name: "Some Test Name " + i
+              data[i] = {
+                id: len + i,
+                name: "Some Test Name " + (len + i)
               }
             }
+            return data;
           }
           
-          $scope.$watch('numItems', createData);
+          $scope.$watch('numItems', function(numItems) {
+            $scope.data = [];
+            $scope.data = createData(numItems);
+          });
           $scope.numItems = 1000;
           
           $scope.options = {
@@ -77,6 +99,9 @@
             },
             onScrollEnd: function() {
               console.log('scroll end');
+              if ($scope.infiniteScrolling) {
+                $scope.data = $scope.data.concat(createData($scope.numItems));
+              }
             }
           }
           
@@ -106,6 +131,16 @@
           $scope.remove = function(item) {
             $scope.data.splice($scope.data.indexOf(item), 1);
           };
+          
+          $scope.$on('td.tileview.layout', function() {
+            console.log('layout');
+          });
+
+          $scope.$watch('rtl', function() {
+            $timeout(function() {
+              $scope.$broadcast('td.tileview.update');
+            }, 0);
+          });
         }]);
     </script>
     <script type="text/ng-template" id="SimpleCell">
