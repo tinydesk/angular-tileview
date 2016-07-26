@@ -250,8 +250,16 @@ declare const angular: any;
           return row;
         }
 
+        function clearRow(row) {
+          while (row.children().length > 0) {
+            removeElementFromRow(row);
+          }
+        }
+
         function removeRow() {
-          itemContainer.children().eq(-1).remove();
+          const row = itemContainer.children().eq(-1);
+          clearRow(row);
+          row.remove();
         }
 
         function addElementToRow(row) {

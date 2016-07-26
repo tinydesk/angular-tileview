@@ -218,8 +218,15 @@
                         itemContainer.append(row);
                         return row;
                     }
+                    function clearRow(row) {
+                        while (row.children().length > 0) {
+                            removeElementFromRow(row);
+                        }
+                    }
                     function removeRow() {
-                        itemContainer.children().eq(-1).remove();
+                        var row = itemContainer.children().eq(-1);
+                        clearRow(row);
+                        row.remove();
                     }
                     function addElementToRow(row) {
                         linkFunction(scope.$parent.$new(), function (clonedElement) {
