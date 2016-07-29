@@ -144,11 +144,10 @@
                         if (scrollEndTimeout !== undefined) {
                             $timeout.cancel(scrollEndTimeout);
                         }
-                        removeAll();
-                        if (Object.keys(scopes).length !== 0 || scopes.constructor !== Object) {
-                            console.error('Memory leak: ' + Object.keys(scopes));
+                        if (debounceTimeout !== undefined) {
+                            $timeout.cancel(debounceTimeout);
                         }
-                        console.log('Destroy ' + scope.$parent.tileOptions.componentId);
+                        removeAll();
                     });
                     function removeElement(el) {
                         var id = el.attr('id');
@@ -157,7 +156,6 @@
                             delete scopes[id];
                         }
                         el.remove();
-                        console.log('Remove ' + el.attr('id'));
                     }
                     function removeAll() {
                         forEachRow(removeRow);
@@ -240,7 +238,6 @@
                         row.attr('id', id);
                         row.css('position', 'absolute');
                         itemContainer.append(row);
-                        console.log('Add row ' + id);
                         return row;
                     }
                     function clearRow(row) {
@@ -252,7 +249,6 @@
                         var row = itemContainer.children().eq(-1);
                         clearRow(row);
                         row.remove();
-                        console.log('Remove row ' + row.attr('id'));
                     }
                     function addElementToRow(row) {
                         var newScope = scope.$parent.$new();
@@ -267,12 +263,10 @@
                             clonedElement.attr('id', scopeId);
                             scopes[scopeId] = newScope;
                             row.append(clonedElement);
-                            console.log('Add ' + scopeId + ' on row ' + row.attr('id'));
                         });
                     }
                     function fillRow(row) {
                         var currentRowLength = row.children().length;
-                        console.log(scope.$parent.tileOptions.componentId + ": Fill row " + currentRowLength + "-->" + itemsPerRow + " " + row.attr('id'));
                         if (currentRowLength < itemsPerRow) {
                             for (var i = currentRowLength; i < itemsPerRow; ++i) {
                                 addElementToRow(row);
