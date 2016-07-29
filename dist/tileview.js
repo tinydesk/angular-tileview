@@ -319,6 +319,7 @@
                         return false;
                     }
                     function update() {
+                        updateVisibleRows();
                         animationFrameRequested = false;
                         if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
                             if (startRow > renderedEndRow || endRow < renderedStartRow) {
@@ -367,7 +368,6 @@
                     var animationFrameRequested = false;
                     function onScroll() {
                         detectScrollStartEnd();
-                        updateVisibleRows();
                         if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
                             if (debounceTimeout === undefined) {
                                 debounceTimeout = $timeout(function () {

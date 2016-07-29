@@ -365,6 +365,7 @@ declare const angular: any;
         }
 
         function update() {
+          updateVisibleRows();
           animationFrameRequested = false;
 
           if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
@@ -415,7 +416,6 @@ declare const angular: any;
         let animationFrameRequested = false;
         function onScroll() {
           detectScrollStartEnd();
-          updateVisibleRows();
           if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
             if (debounceTimeout === undefined) {
               debounceTimeout = $timeout(function () {
