@@ -146,6 +146,18 @@ declare const angular: any;
 
         scope.$on('$destroy', function () {
           angular.element($window).off('resize', onResize);
+
+          // unregister all timers:
+          if (resizeTimeout !== undefined) {
+            $timeout.cancel(resizeTimeout);
+          }
+          if (scrollEndTimeout !== undefined) {
+            $timeout.cancel(scrollEndTimeout);
+          }
+          if (debounceTimeout !== undefined) {
+            $timeout.cancel(debounceTimeout);
+          }
+
           removeAll();
         });
 
