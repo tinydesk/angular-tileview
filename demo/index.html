@@ -103,6 +103,7 @@
               console.log('scroll end');
               if ($scope.infiniteScrolling) {
                 $scope.data = $scope.data.concat(createData($scope.numItems));
+                $scope.$digest();
               }
             }
           }
