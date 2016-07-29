@@ -6,17 +6,6 @@ declare const angular: any;
 
   const mod = angular.module('td.tileview', ['td.scroll']);
 
-  function makeid()
-  {
-      var text = "";
-      var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-      for( var i=0; i < 5; i++ )
-          text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-      return text;
-  }
-
   /**
 	 * @ngdoc directive
 	 * @name td.tileview.directive:tdTileview
@@ -86,6 +75,11 @@ declare const angular: any;
         let virtualRows = [];
         const scopes = {};
         let scopeCounter = 0;
+
+        function nextScopeId() {
+          scopeCounter = scopeCounter + 1;
+          return 'scope-' + scopeCounter;
+        }
 
         function handleTileSizeChange() {
           forEachElement(el => {
@@ -271,8 +265,6 @@ declare const angular: any;
 
         function addRow() {
           const row = angular.element('<div class="td-row"></div>');
-          const id = makeid();
-          row.attr('id', id);
           row.css('position', 'absolute');
           itemContainer.append(row);
           return row;
@@ -299,7 +291,7 @@ declare const angular: any;
               display: 'inline-block',
               'vertical-align': 'top'
             });
-            const scopeId = makeid();
+            const scopeId = nextScopeId();
             clonedElement.attr('id', scopeId);
             scopes[scopeId] = newScope;
             row.append(clonedElement);

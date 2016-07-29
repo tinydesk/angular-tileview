@@ -1,13 +1,6 @@
 (function () {
     'use strict';
     var mod = angular.module('td.tileview', ['td.scroll']);
-    function makeid() {
-        var text = "";
-        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        for (var i = 0; i < 5; i++)
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return text;
-    }
     /**
        * @ngdoc directive
        * @name td.tileview.directive:tdTileview
@@ -71,6 +64,10 @@
                     var virtualRows = [];
                     var scopes = {};
                     var scopeCounter = 0;
+                    function nextScopeId() {
+                        scopeCounter = scopeCounter + 1;
+                        return 'scope-' + scopeCounter;
+                    }
                     function handleTileSizeChange() {
                         forEachElement(function (el) {
                             el.css('width', scope.options.tileSize.width + 'px');
@@ -234,8 +231,6 @@
                     }
                     function addRow() {
                         var row = angular.element('<div class="td-row"></div>');
-                        var id = makeid();
-                        row.attr('id', id);
                         row.css('position', 'absolute');
                         itemContainer.append(row);
                         return row;
@@ -259,7 +254,7 @@
                                 display: 'inline-block',
                                 'vertical-align': 'top'
                             });
-                            var scopeId = makeid();
+                            var scopeId = nextScopeId();
                             clonedElement.attr('id', scopeId);
                             scopes[scopeId] = newScope;
                             row.append(clonedElement);
