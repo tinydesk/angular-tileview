@@ -62,6 +62,12 @@
                     var rowCount;
                     var cachedRowCount;
                     var virtualRows = [];
+                    var scopes = {};
+                    var scopeCounter = 0;
+                    function nextScopeId() {
+                        scopeCounter = scopeCounter + 1;
+                        return 'scope-' + scopeCounter;
+                    }
                     function handleTileSizeChange() {
                         forEachElement(function (el) {
                             el.css('width', scope.options.tileSize.width + 'px');
@@ -141,13 +147,14 @@
                         removeAll();
                     });
                     function removeElement(el) {
-                        if (el.scope() !== undefined) {
-                            el.scope().$destroy();
+                        var id = el.attr('id');
+                        if (scopes[id] !== undefined) {
+                            scopes[id].$destroy();
+                            delete scopes[id];
                         }
                         el.remove();
                     }
                     function removeAll() {
-                        forEachElement(removeElement);
                         forEachRow(removeRow);
                     }
                     function forEachElement(fn) {
@@ -194,7 +201,7 @@
                             if (elem.css('display') === 'none') {
                                 elem.css('display', 'inline-block');
                             }
-                            var itemScope = elem.scope();
+                            var itemScope = scopes[elem.attr('id')];
                             itemScope.item = item;
                             itemScope.$index = index;
                             if (digest === true) {
@@ -239,13 +246,17 @@
                         row.remove();
                     }
                     function addElementToRow(row) {
-                        linkFunction(scope.$parent.$new(), function (clonedElement) {
+                        var newScope = scope.$parent.$new();
+                        linkFunction(newScope, function (clonedElement) {
                             clonedElement.css({
                                 width: scope.options.tileSize.width + 'px',
                                 height: scope.options.tileSize.height + 'px',
                                 display: 'inline-block',
                                 'vertical-align': 'top'
                             });
+                            var scopeId = nextScopeId();
+                            clonedElement.attr('id', scopeId);
+                            scopes[scopeId] = newScope;
                             row.append(clonedElement);
                         });
                     }
@@ -292,7 +303,7 @@
                         var newComponentSize = container[0].getBoundingClientRect();
                         if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
                             if (layout(false)) {
-                                forEachElement(function (el) { return el.scope().$digest(); });
+                                forEachElement(function (el) { return scopes[el.attr('id')].$digest(); });
                             }
                         }
                     }

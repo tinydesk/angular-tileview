@@ -73,6 +73,13 @@ declare const angular: any;
         let cachedRowCount;
 
         let virtualRows = [];
+        const scopes = {};
+        let scopeCounter = 0;
+
+        function nextScopeId() {
+          scopeCounter = scopeCounter + 1;
+          return 'scope-' + scopeCounter;
+        }
 
         function handleTileSizeChange() {
           forEachElement(el => {
@@ -162,14 +169,15 @@ declare const angular: any;
         });
 
         function removeElement(el) {
-          if (el.scope() !== undefined) {
-            el.scope().$destroy();
+          const id = el.attr('id');
+          if (scopes[id] !== undefined) {
+            scopes[id].$destroy();
+            delete scopes[id];
           }
           el.remove();
         }
 
         function removeAll() {
-          forEachElement(removeElement);
           forEachRow(removeRow);
         }
 
@@ -227,7 +235,7 @@ declare const angular: any;
             if (elem.css('display') === 'none') {
               elem.css('display', 'inline-block');
             }
-            const itemScope = elem.scope();
+            const itemScope = scopes[elem.attr('id')];
             itemScope.item = item;
             itemScope.$index = index;
             if (digest === true) {
@@ -275,13 +283,17 @@ declare const angular: any;
         }
 
         function addElementToRow(row) {
-          linkFunction(scope.$parent.$new(), function (clonedElement) {
+          const newScope = scope.$parent.$new();
+          linkFunction(newScope, function (clonedElement) {
             clonedElement.css({
               width: scope.options.tileSize.width + 'px',
               height: scope.options.tileSize.height + 'px',
               display: 'inline-block',
               'vertical-align': 'top'
             });
+            const scopeId = nextScopeId();
+            clonedElement.attr('id', scopeId);
+            scopes[scopeId] = newScope;
             row.append(clonedElement);
           });
         }
@@ -333,7 +345,7 @@ declare const angular: any;
           const newComponentSize = container[0].getBoundingClientRect();
           if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
             if (layout(false)) {
-              forEachElement(el => el.scope().$digest());
+              forEachElement(el => scopes[el.attr('id')].$digest());
             }
           }
         }
