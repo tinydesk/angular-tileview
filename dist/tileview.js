@@ -1,6 +1,13 @@
 (function () {
     'use strict';
     var mod = angular.module('td.tileview', ['td.scroll']);
+    function makeid() {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (var i = 0; i < 5; i++)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return text;
+    }
     /**
        * @ngdoc directive
        * @name td.tileview.directive:tdTileview
@@ -62,6 +69,8 @@
                     var rowCount;
                     var cachedRowCount;
                     var virtualRows = [];
+                    var scopes = {};
+                    var scopeCounter = 0;
                     function handleTileSizeChange() {
                         forEachElement(function (el) {
                             el.css('width', scope.options.tileSize.width + 'px');
@@ -128,16 +137,29 @@
                     angular.element($window).on('resize', onResize);
                     scope.$on('$destroy', function () {
                         angular.element($window).off('resize', onResize);
+                        // unregister all timers:
+                        if (resizeTimeout !== undefined) {
+                            $timeout.cancel(resizeTimeout);
+                        }
+                        if (scrollEndTimeout !== undefined) {
+                            $timeout.cancel(scrollEndTimeout);
+                        }
                         removeAll();
+                        if (Object.keys(scopes).length !== 0 || scopes.constructor !== Object) {
+                            console.error('Memory leak: ' + Object.keys(scopes));
+                        }
+                        console.log('Destroy ' + scope.$parent.tileOptions.componentId);
                     });
                     function removeElement(el) {
-                        if (el.scope() !== undefined) {
-                            el.scope().$destroy();
+                        var id = el.attr('id');
+                        if (scopes[id] !== undefined) {
+                            scopes[id].$destroy();
+                            delete scopes[id];
                         }
                         el.remove();
+                        console.log('Remove ' + el.attr('id'));
                     }
                     function removeAll() {
-                        forEachElement(removeElement);
                         forEachRow(removeRow);
                     }
                     function forEachElement(fn) {
@@ -184,7 +206,7 @@
                             if (elem.css('display') === 'none') {
                                 elem.css('display', 'inline-block');
                             }
-                            var itemScope = elem.scope();
+                            var itemScope = scopes[elem.attr('id')];
                             itemScope.item = item;
                             itemScope.$index = index;
                             if (digest === true) {
@@ -214,8 +236,11 @@
                     }
                     function addRow() {
                         var row = angular.element('<div class="td-row"></div>');
+                        var id = makeid();
+                        row.attr('id', id);
                         row.css('position', 'absolute');
                         itemContainer.append(row);
+                        console.log('Add row ' + id);
                         return row;
                     }
                     function clearRow(row) {
@@ -227,20 +252,27 @@
                         var row = itemContainer.children().eq(-1);
                         clearRow(row);
                         row.remove();
+                        console.log('Remove row ' + row.attr('id'));
                     }
                     function addElementToRow(row) {
-                        linkFunction(scope.$parent.$new(), function (clonedElement) {
+                        var newScope = scope.$parent.$new();
+                        linkFunction(newScope, function (clonedElement) {
                             clonedElement.css({
                                 width: scope.options.tileSize.width + 'px',
                                 height: scope.options.tileSize.height + 'px',
                                 display: 'inline-block',
                                 'vertical-align': 'top'
                             });
+                            var scopeId = makeid();
+                            clonedElement.attr('id', scopeId);
+                            scopes[scopeId] = newScope;
                             row.append(clonedElement);
+                            console.log('Add ' + scopeId + ' on row ' + row.attr('id'));
                         });
                     }
                     function fillRow(row) {
                         var currentRowLength = row.children().length;
+                        console.log(scope.$parent.tileOptions.componentId + ": Fill row " + currentRowLength + "-->" + itemsPerRow + " " + row.attr('id'));
                         if (currentRowLength < itemsPerRow) {
                             for (var i = currentRowLength; i < itemsPerRow; ++i) {
                                 addElementToRow(row);
@@ -282,7 +314,7 @@
                         var newComponentSize = container[0].getBoundingClientRect();
                         if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
                             if (layout(false)) {
-                                forEachElement(function (el) { return el.scope().$digest(); });
+                                forEachElement(function (el) { return scopes[el.attr('id')].$digest(); });
                             }
                         }
                     }

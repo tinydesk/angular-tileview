@@ -6,6 +6,17 @@ declare const angular: any;
 
   const mod = angular.module('td.tileview', ['td.scroll']);
 
+  function makeid()
+  {
+      var text = "";
+      var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+      for( var i=0; i < 5; i++ )
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+      return text;
+  }
+
   /**
 	 * @ngdoc directive
 	 * @name td.tileview.directive:tdTileview
@@ -73,6 +84,8 @@ declare const angular: any;
         let cachedRowCount;
 
         let virtualRows = [];
+        const scopes = {};
+        let scopeCounter = 0;
 
         function handleTileSizeChange() {
           forEachElement(el => {
@@ -146,18 +159,31 @@ declare const angular: any;
 
         scope.$on('$destroy', function () {
           angular.element($window).off('resize', onResize);
+
+          // unregister all timers:
+          if (resizeTimeout !== undefined) {
+            $timeout.cancel(resizeTimeout);
+          }
+          if (scrollEndTimeout !== undefined) {
+            $timeout.cancel(scrollEndTimeout);
+          }
+          if (debounceTimeout !== undefined) {
+            $timeout.cancel(debounceTimeout);
+          }
+
           removeAll();
         });
 
         function removeElement(el) {
-          if (el.scope() !== undefined) {
-            el.scope().$destroy();
+          const id = el.attr('id');
+          if (scopes[id] !== undefined) {
+            scopes[id].$destroy();
+            delete scopes[id];
           }
           el.remove();
         }
 
         function removeAll() {
-          forEachElement(removeElement);
           forEachRow(removeRow);
         }
 
@@ -215,7 +241,7 @@ declare const angular: any;
             if (elem.css('display') === 'none') {
               elem.css('display', 'inline-block');
             }
-            const itemScope = elem.scope();
+            const itemScope = scopes[elem.attr('id')];
             itemScope.item = item;
             itemScope.$index = index;
             if (digest === true) {
@@ -245,6 +271,8 @@ declare const angular: any;
 
         function addRow() {
           const row = angular.element('<div class="td-row"></div>');
+          const id = makeid();
+          row.attr('id', id);
           row.css('position', 'absolute');
           itemContainer.append(row);
           return row;
@@ -263,13 +291,17 @@ declare const angular: any;
         }
 
         function addElementToRow(row) {
-          linkFunction(scope.$parent.$new(), function (clonedElement) {
+          const newScope = scope.$parent.$new();
+          linkFunction(newScope, function (clonedElement) {
             clonedElement.css({
               width: scope.options.tileSize.width + 'px',
               height: scope.options.tileSize.height + 'px',
               display: 'inline-block',
               'vertical-align': 'top'
             });
+            const scopeId = makeid();
+            clonedElement.attr('id', scopeId);
+            scopes[scopeId] = newScope;
             row.append(clonedElement);
           });
         }
@@ -321,7 +353,7 @@ declare const angular: any;
           const newComponentSize = container[0].getBoundingClientRect();
           if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
             if (layout(false)) {
-              forEachElement(el => el.scope().$digest());
+              forEachElement(el => scopes[el.attr('id')].$digest());
             }
           }
         }
