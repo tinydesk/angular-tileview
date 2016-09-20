@@ -320,7 +320,7 @@
                         var newItemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                         var newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
                         var changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
-                        itemsPerRow = newItemsPerRow;
+                        itemsPerRow = Math.max(newItemsPerRow, 1); //at least show one item per row
                         cachedRowCount = newCachedRowCount;
                         rowCount = Math.ceil(scope.items.length / itemsPerRow);
                         return changes;
@@ -414,4 +414,4 @@
     }
 })();
 
-angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view horizontal\">\n    <div class=\"item-container\">\n\n    </div>\n</div>");}]);
+angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view horizontal\">\r\n    <div class=\"item-container\">\r\n\r\n    </div>\r\n</div>");}]);
