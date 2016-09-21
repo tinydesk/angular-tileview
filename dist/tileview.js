@@ -311,7 +311,10 @@
                         resize();
                     }
                     function measure() {
-                        var rect = container[0].getBoundingClientRect();
+                        var rect = {
+                            width: container[0].clientWidth,
+                            height: container[0].clientHeight
+                        };
                         componentWidth = rect.width;
                         componentHeight = rect.height;
                         var itemWidth = scope.options.tileSize.width;
