@@ -207,10 +207,12 @@
                         }
                         //in any case bind the scope to the item to avoid false states in invisible items
                         var itemScope = scopes[elem.attr('id')];
-                        itemScope.item = item;
-                        itemScope.$index = index;
-                        if (digest === true) {
-                            itemScope.$digest();
+                        if (itemScope) {
+                            itemScope.item = item;
+                            itemScope.$index = index;
+                            if (digest === true) {
+                                itemScope.$digest();
+                            }
                         }
                     }
                     function updateRow(el, rowIndex, digest) {
