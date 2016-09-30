@@ -201,15 +201,16 @@
                             if (elem.css('display') === 'none') {
                                 elem.css('display', 'inline-block');
                             }
-                            var itemScope = scopes[elem.attr('id')];
-                            itemScope.item = item;
-                            itemScope.$index = index;
-                            if (digest === true) {
-                                itemScope.$digest();
-                            }
                         }
                         else {
                             elem.css('display', 'none');
+                        }
+                        //in any case bind the scope to the item to avoid false states in invisible items
+                        var itemScope = scopes[elem.attr('id')];
+                        itemScope.item = item;
+                        itemScope.$index = index;
+                        if (digest === true) {
+                            itemScope.$digest();
                         }
                     }
                     function updateRow(el, rowIndex, digest) {

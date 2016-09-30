@@ -235,14 +235,15 @@ declare const angular: any;
                         if (elem.css('display') === 'none') {
                             elem.css('display', 'inline-block');
                         }
-                        const itemScope = scopes[elem.attr('id')];
-                        itemScope.item = item;
-                        itemScope.$index = index;
-                        if (digest === true) {
-                            itemScope.$digest();
-                        }
                     } else {
                         elem.css('display', 'none');
+                    }
+                    //in any case bind the scope to the item to avoid false states in invisible items
+                    const itemScope = scopes[elem.attr('id')];
+                    itemScope.item = item;
+                    itemScope.$index = index;
+                    if (digest === true) {
+                        itemScope.$digest();
                     }
                 }
 
