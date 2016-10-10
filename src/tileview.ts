@@ -7,34 +7,34 @@ declare const angular: any;
   const mod = angular.module('td.tileview', ['td.scroll']);
 
   /**
-	 * @ngdoc directive
-	 * @name td.tileview.directive:tdTileview
-	 * @restrict E
-	 *
-	 * @description
-	 *
-	 * The tile directive provides a tile-based view on a list of data. The tiles can be arranged in a grid or they can be
-	 * horizontally stacked.
+     * @ngdoc directive
+     * @name td.tileview.directive:tdTileview
+     * @restrict E
+     *
+     * @description
+     *
+     * The tile directive provides a tile-based view on a list of data. The tiles can be arranged in a grid or they can be
+     * horizontally stacked.
    * 
    * The tile directive will automatically resize when the window is resized. If the size changed for some other reasons, a manual resize 
    * can be triggered, by broadcasting the `td.tileview.resize` event. There are two other events, that indicate the beginning and ending 
    * of a scrolling movement. These events can be used to implement custom performance optimisations, because not every DOM change needs to
    * be done while scrolling. The events are: `td.tileview.scrollStart` and `td.tileview.scrollEnd`. In order to detect when scrolling ends 
    * a debounce delay is used. It can be configured with the `afterScrollDelay` options property.
-	 *
-	 * @param {Array=} items The items that are to be displayed in the tile view 
-	 * @param {object=} options An options object defining options that are relevant specifically for the tile ui such as
-	 * tile sizes for example. It consists of the following properties:
-	 *
-	 * - **templateUrl** - {string} - Path to the template that should be used to render tiles. The template will implicitly have
-	 * access to the tile directive's scope plus an `item` object. Note that the template is responsible for maintaining the
-	 * selection state by calling the appropriate methods on the selection object.
-	 * - **tileSize** - {object} - The current tile size represented as an object with the following properties:
-	 *   - **width** - {int} - The width of the tile.
-	 *   - **height** - {int} - The height of the tile.
-	 * Can be dynamically adjusted.
-	 * - **alignHorizontal** - {boolean} - Whether to show the tiles in a grid with a vertical scrollbar or horizontally
-	 * stacked.
+     *
+     * @param {Array=} items The items that are to be displayed in the tile view 
+     * @param {object=} options An options object defining options that are relevant specifically for the tile ui such as
+     * tile sizes for example. It consists of the following properties:
+     *
+     * - **templateUrl** - {string} - Path to the template that should be used to render tiles. The template will implicitly have
+     * access to the tile directive's scope plus an `item` object. Note that the template is responsible for maintaining the
+     * selection state by calling the appropriate methods on the selection object.
+     * - **tileSize** - {object} - The current tile size represented as an object with the following properties:
+     *   - **width** - {int} - The width of the tile.
+     *   - **height** - {int} - The height of the tile.
+     * Can be dynamically adjusted.
+     * - **alignHorizontal** - {boolean} - Whether to show the tiles in a grid with a vertical scrollbar or horizontally
+     * stacked.
    * - **onScrollEnd** - {function} - A callback that is invoked when the user scrolls to the end of the data.
    * - **scrollEndOffset** - {number} - Some features that rely on the `scrollEnd` callback need to be informed in advance. 
    * This property specifies an offset in rows to trigger the scroll end event before actually hitting the bottom of the data. **Default**: 0
@@ -184,7 +184,7 @@ declare const angular: any;
         function forEachElement(fn) {
           forEachRow((row, rowIndex) => {
             for (let i = 0; i < row.children().length; ++i) {
-              fn(row.children().eq(i), rowIndex*itemsPerRow + i);
+              fn(row.children().eq(i), rowIndex * itemsPerRow + i);
             }
           });
         }
@@ -215,7 +215,7 @@ declare const angular: any;
 
           const maxScrollPosition = rowCount * itemSize - rect[sizeDimension];
 
-          let scrollPosition = scope.options.alignHorizontal ? 
+          let scrollPosition = scope.options.alignHorizontal ?
             container.scrollLeft() :
             container[0].scrollTop;
 
@@ -235,14 +235,17 @@ declare const angular: any;
             if (elem.css('display') === 'none') {
               elem.css('display', 'inline-block');
             }
-            const itemScope = scopes[elem.attr('id')];
+          } else {
+            elem.css('display', 'none');
+          }
+          //in any case bind the scope to the item to avoid false states in invisible items
+          const itemScope = scopes[elem.attr('id')];
+          if (itemScope) {
             itemScope.item = item;
             itemScope.$index = index;
             if (digest === true) {
               itemScope.$digest();
             }
-          } else {
-            elem.css('display', 'none');
           }
         }
 
@@ -355,7 +358,11 @@ declare const angular: any;
         }
 
         function measure() {
-          const rect = container[0].getBoundingClientRect();
+          const rect = {
+            width: container[0].clientWidth,
+            height: container[0].clientHeight,
+          }
+
           componentWidth = rect.width;
           componentHeight = rect.height;
           const itemWidth = scope.options.tileSize.width;
@@ -366,7 +373,7 @@ declare const angular: any;
           const newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
 
           const changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
-          itemsPerRow = newItemsPerRow;
+          itemsPerRow = Math.max(newItemsPerRow, 1); //at least show one item per row
           cachedRowCount = newCachedRowCount;
           rowCount = Math.ceil(scope.items.length / itemsPerRow);
           return changes;

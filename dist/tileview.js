@@ -201,15 +201,18 @@
                             if (elem.css('display') === 'none') {
                                 elem.css('display', 'inline-block');
                             }
-                            var itemScope = scopes[elem.attr('id')];
+                        }
+                        else {
+                            elem.css('display', 'none');
+                        }
+                        //in any case bind the scope to the item to avoid false states in invisible items
+                        var itemScope = scopes[elem.attr('id')];
+                        if (itemScope) {
                             itemScope.item = item;
                             itemScope.$index = index;
                             if (digest === true) {
                                 itemScope.$digest();
                             }
-                        }
-                        else {
-                            elem.css('display', 'none');
                         }
                     }
                     function updateRow(el, rowIndex, digest) {
@@ -311,7 +314,10 @@
                         resize();
                     }
                     function measure() {
-                        var rect = container[0].getBoundingClientRect();
+                        var rect = {
+                            width: container[0].clientWidth,
+                            height: container[0].clientHeight
+                        };
                         componentWidth = rect.width;
                         componentHeight = rect.height;
                         var itemWidth = scope.options.tileSize.width;
@@ -320,7 +326,7 @@
                         var newItemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                         var newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
                         var changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
-                        itemsPerRow = newItemsPerRow;
+                        itemsPerRow = Math.max(newItemsPerRow, 1); //at least show one item per row
                         cachedRowCount = newCachedRowCount;
                         rowCount = Math.ceil(scope.items.length / itemsPerRow);
                         return changes;
@@ -414,4 +420,4 @@
     }
 })();
 
-angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view horizontal\">\n    <div class=\"item-container\">\n\n    </div>\n</div>");}]);
+angular.module("td.tileview").run(["$templateCache", function($templateCache) {$templateCache.put("tileview.tpl.html","<div class=\"tile-view horizontal\">\r\n    <div class=\"item-container\">\r\n\r\n    </div>\r\n</div>");}]);
