@@ -320,7 +320,7 @@
                         var newItemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                         var newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
                         var changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
-                        itemsPerRow = newItemsPerRow;
+                        itemsPerRow = Math.max(newItemsPerRow, 1);
                         cachedRowCount = newCachedRowCount;
                         rowCount = Math.ceil(scope.items.length / itemsPerRow);
                         return changes;
