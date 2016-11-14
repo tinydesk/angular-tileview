@@ -366,7 +366,7 @@ declare const angular: any;
           const newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
 
           const changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
-          itemsPerRow = newItemsPerRow;
+          itemsPerRow = Math.max(newItemsPerRow, 1);
           cachedRowCount = newCachedRowCount;
           rowCount = Math.ceil(scope.items.length / itemsPerRow);
           return changes;
