@@ -340,6 +340,7 @@
                         return false;
                     }
                     function update() {
+                        console.log('update');
                         updateVisibleRows();
                         animationFrameRequested = false;
                         if (startRow !== renderedStartRow || endRow !== renderedEndRow) {
@@ -388,6 +389,7 @@
                     var debounceTimeout, scrollEndTimeout;
                     var animationFrameRequested = false;
                     function onScroll() {
+                        console.log('scroll');
                         detectScrollStartEnd();
                         if (scope.options.debounce !== undefined && scope.options.debounce > 0) {
                             if (debounceTimeout === undefined) {
@@ -400,7 +402,7 @@
                         else {
                             if (!animationFrameRequested) {
                                 animationFrameRequested = true;
-                                requestAnimationFrame(update);
+                                $window.requestAnimationFrame(update);
                             }
                         }
                     }

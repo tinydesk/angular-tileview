@@ -18,7 +18,9 @@ module.exports = function(config) {
       'bower_components/angular/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/angular-scroll-rtl/dist/angular-scroll-rtl.js',
+      'node_modules/lodash/lodash.js',
       'dist/tileview.js',
+      'dist/tileview.css',
       'test/**/*.js'
     ],
 

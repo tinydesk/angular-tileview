@@ -450,7 +450,7 @@ declare const angular: any;
           } else {
             if (!animationFrameRequested) {
               animationFrameRequested = true;
-              requestAnimationFrame(update);
+              $window.requestAnimationFrame(update);
             }
           }
         }

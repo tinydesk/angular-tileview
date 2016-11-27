@@ -26,6 +26,7 @@
     "karma": "^1.3.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-jasmine": "^1.0.2",
+    "lodash": "^4.17.2",
     "streamqueue": "^1.1.1"
   }
 }
