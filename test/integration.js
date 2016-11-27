@@ -1,7 +1,7 @@
-const name = index => 'Some name ' + index;
+const getName = index => 'Some name ' + index;
 
 const createItems = count => _.range(count).map(i => ({
-  name: name(i)
+  name: getName(i)
 }));
 
 const getRows = el => el.children().children().children();
@@ -22,7 +22,7 @@ const checkRows = (rows, spec, offset = 0) => {
 
     _.range(Math.min(r.children().length, s[1] || 1000)).forEach(j => {
       const item = r.children().eq(j);
-      expect(item.text()).toBe(name(j + expectedTranslation / 100 * 4));
+      expect(item.text()).toBe(getName(j + expectedTranslation / 100 * 4));
       expect(item.css('display')).toBe('inline-block');
     });
 
