@@ -1,0 +1,30 @@
+.inner {
+  width: 10000px;
+  height: 100%;
+}
+
+.outer {
+  width: 100%;
+  overflow: auto;
+  height: 200px;
+  border: 1px solid;
+  margin: 10px 0;
+}
+
+.position {
+  position: relative;
+}
+
+.demo {
+  padding: 20px;
+}
+
+.fixed {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  height: 30px;
+  border: 1px solid;
+  direction: ltr;
+  padding: 3px 5px;
+}

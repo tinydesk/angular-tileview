@@ -24,6 +24,7 @@
        * - **templateUrl** - {string} - Path to the template that should be used to render tiles. The template will implicitly have
        * access to the tile directive's scope plus an `item` object. Note that the template is responsible for maintaining the
        * selection state by calling the appropriate methods on the selection object.
+     * - **groupHeaderTemplateUrl** - {string} - Path to the template that should be used to render group headers
        * - **tileSize** - {object} - The current tile size represented as an object with the following properties:
        *   - **width** - {int} - The width of the tile.
        *   - **height** - {int} - The height of the tile.
@@ -42,10 +43,11 @@
                 restrict: 'E',
                 scope: {
                     items: '=',
+                    supplier: '=',
                     options: '='
                 },
                 template: $templateCache.get('tileview.tpl.html'),
-                link: function (scope, elem, attrs) {
+                link: function (scope, elem) {
                     scope.elem = elem;
                     scope.tileStyle = {};
                     scope.tileStyle.marginRight = "4px";
@@ -54,8 +56,9 @@
                     var container = elem.children();
                     var itemContainer = container.children().eq(0);
                     var linkFunction;
-                    var heightStart = 0;
-                    var heightEnd = 0;
+                    var headerLinkFunction;
+                    var itemClass = 'tileview-item';
+                    var groupHeaderClass = 'tileview-group-header';
                     var startRow = 0, endRow;
                     var renderedStartRow = -1, renderedEndRow = -1;
                     var itemsPerRow;
@@ -70,8 +73,10 @@
                     }
                     function handleTileSizeChange() {
                         forEachElement(function (el) {
-                            el.css('width', scope.options.tileSize.width + 'px');
-                            el.css('height', scope.options.tileSize.height + 'px');
+                            if ((el.hasClass(itemClass))) {
+                                el.css('width', scope.options.tileSize.width + 'px');
+                                el.css('height', scope.options.tileSize.height + 'px');
+                            }
                         });
                     }
                     function handleTemplateUrlChange() {
@@ -82,6 +87,16 @@
                         }
                         else {
                             console.error('Template url not found: ' + scope.options.templateUrl);
+                        }
+                    }
+                    function handleGroupHeaderTemplateUrlChange() {
+                        var template = $templateCache.get(scope.options.groupHeaderTemplateUrl);
+                        if (template !== undefined) {
+                            headerLinkFunction = $compile(template);
+                            removeAll();
+                        }
+                        else {
+                            console.error('Group header template url not found: ' + scope.options.groupHeaderTemplateUrl);
                         }
                     }
                     function handleAlignHorizontalChange() {
@@ -106,6 +121,9 @@
                         options.afterScrollDelay = def(options.afterScrollDelay, 100);
                         if (options === currentOptions || options.templateUrl !== currentOptions.templateUrl) {
                             handleTemplateUrlChange();
+                        }
+                        if (options === currentOptions || options.groupHeaderTemplateUrl !== currentOptions.groupHeaderTemplateUrl) {
+                            handleGroupHeaderTemplateUrlChange();
                         }
                         if (options === currentOptions || options.alignHorizontal !== currentOptions.alignHorizontal) {
                             handleAlignHorizontalChange();
@@ -195,12 +213,9 @@
                         endRow = startRow + cachedRowCount;
                         lastScrollPosition = scrollPosition;
                     }
-                    function updateItem(elem, index, digest) {
-                        var item = scope.items[index];
-                        if (item !== undefined) {
-                            if (elem.css('display') === 'none') {
-                                elem.css('display', 'inline-block');
-                            }
+                    function updateItem(elem, item, index, digest) {
+                        if (item !== undefined && Object.keys(item).length !== 0) {
+                            showItem(elem);
                             var itemScope = scopes[elem.attr('id')];
                             itemScope.item = item;
                             itemScope.$index = index;
@@ -209,13 +224,60 @@
                             }
                         }
                         else {
-                            elem.css('display', 'none');
+                            makeTransparent(elem);
                         }
                     }
+                    function updateGroup(elem, group, index, digest) {
+                        showItem(elem);
+                        var groupScope = scopes[elem.attr('id')];
+                        groupScope.group = group;
+                        groupScope.$index = index;
+                        if (digest === true) {
+                            groupScope.$digest();
+                        }
+                    }
+                    function isGroup(item) {
+                        return !!(item && item.groupHeader);
+                    }
+                    function hideItem(elem) {
+                        elem.css('display', 'none');
+                    }
+                    function showItem(elem) {
+                        if (elem.css('display') === 'none') {
+                            elem.css('display', 'inline-block');
+                        }
+                        if (elem.css('opacity') !== '1') {
+                            elem.css('opacity', '1');
+                        }
+                    }
+                    function makeTransparent(elem) {
+                        if (elem.css('display') === 'none') {
+                            elem.css('display', 'inline-block');
+                        }
+                        elem.css('opacity', '0');
+                    }
                     function updateRow(el, rowIndex, digest) {
-                        var ch = el.children();
-                        for (var i = 0; i < ch.length; ++i) {
-                            updateItem(ch.eq(i), rowIndex * itemsPerRow + i, digest);
+                        var items = getRowItems(el);
+                        var header = getRowHeader(el).eq(0);
+                        var item, index;
+                        var inGroupHeader = false;
+                        for (var i = 0; i < items.length; ++i) {
+                            item = scope.supplier.getItem(rowIndex, i);
+                            index = (rowIndex * itemsPerRow) + i;
+                            if (!isGroup(item)) {
+                                if (inGroupHeader) {
+                                    hideItem(items.eq(i));
+                                }
+                                else {
+                                    hideItem(header);
+                                    updateItem(items.eq(i), item, index, digest);
+                                }
+                            }
+                            else {
+                                inGroupHeader = true;
+                                hideItem(items.eq(i));
+                                updateGroup(header, item, index, digest);
+                            }
                         }
                         var translate = Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0);
                         //el.css('transform', `${translate}(${Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0)}px), translateZ(${rowIndex})`);
@@ -256,12 +318,31 @@
                             });
                             var scopeId = nextScopeId();
                             clonedElement.attr('id', scopeId);
+                            clonedElement.addClass('tileview-item');
+                            scopes[scopeId] = newScope;
+                            row.append(clonedElement);
+                        });
+                    }
+                    function addHeaderElementToRow(row) {
+                        var newScope = scope.$parent.$new();
+                        headerLinkFunction(newScope, function (clonedElement) {
+                            clonedElement.css({
+                                display: 'none',
+                                'vertical-align': 'top'
+                            });
+                            var scopeId = nextScopeId();
+                            clonedElement.attr('id', scopeId);
+                            clonedElement.addClass('tileview-group-header');
                             scopes[scopeId] = newScope;
                             row.append(clonedElement);
                         });
                     }
                     function fillRow(row) {
-                        var currentRowLength = row.children().length;
+                        var currentRowLength = getRowItems(row).length;
+                        var headerInRow = getRowHeader(row).length;
+                        if (!headerInRow) {
+                            addHeaderElementToRow(row);
+                        }
                         if (currentRowLength < itemsPerRow) {
                             for (var i = currentRowLength; i < itemsPerRow; ++i) {
                                 addElementToRow(row);
@@ -272,6 +353,12 @@
                                 removeElementFromRow(row);
                             }
                         }
+                    }
+                    function getRowItems(row) {
+                        return row.children('.' + itemClass);
+                    }
+                    function getRowHeader(row) {
+                        return row.children('.' + groupHeaderClass);
                     }
                     function removeElementFromRow(row) {
                         removeElement(row.children().eq(-1));
@@ -320,13 +407,17 @@
                         var newItemsPerRow = (scope.options.alignHorizontal) ? 1 : Math.floor(width / itemWidth);
                         var newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
                         var changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
+                        // TODO let supplier know items per row
+                        scope.supplier.setItemsPerRow(Math.max(newItemsPerRow, 1));
                         itemsPerRow = Math.max(newItemsPerRow, 1);
                         cachedRowCount = newCachedRowCount;
-                        rowCount = Math.ceil(scope.items.length / itemsPerRow);
+                        // TODO: get from service
+                        rowCount = scope.supplier.getTotalRowCount();
                         return changes;
                     }
                     var componentWidth = 0, componentHeight = 0;
                     function layout(alwaysLayout) {
+                        // TODO ask services if items are defined
                         if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
                             if (measure() || alwaysLayout) {
                                 createElements(cachedRowCount);
