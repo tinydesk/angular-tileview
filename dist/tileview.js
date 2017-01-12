@@ -38,7 +38,7 @@
      * - **debounce** - {number} - Debounce for the scroll event. A value of `0` is interpreted as no debounce. **Default**: 0.
      * - **afterScrollDelay** - {number} - Time to wait in order to decide whether a scroll movement has finished. **Default**: 100.
      */
-    mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', function ($compile, $templateCache, $timeout, $window) {
+    mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', '$log', function ($compile, $templateCache, $timeout, $window, $log) {
             return {
                 restrict: 'E',
                 scope: {
@@ -213,22 +213,18 @@
                         endRow = startRow + cachedRowCount;
                         lastScrollPosition = scrollPosition;
                     }
+                    function isEmptyObject(obj) {
+                        return Object.keys(obj).length === 0;
+                    }
                     function updateItem(elem, item, index, digest) {
-                        if (item !== undefined && Object.keys(item).length !== 0) {
-                            showItem(elem);
-                            var itemScope = scopes[elem.attr('id')];
-                            itemScope.item = item;
-                            itemScope.$index = index;
-                            if (digest === true) {
-                                itemScope.$digest();
-                            }
-                        }
-                        else {
-                            makeTransparent(elem);
+                        var itemScope = scopes[elem.attr('id')];
+                        itemScope.item = item;
+                        itemScope.$index = index;
+                        if (digest === true) {
+                            itemScope.$digest();
                         }
                     }
                     function updateGroup(elem, group, index, digest) {
-                        showItem(elem);
                         var groupScope = scopes[elem.attr('id')];
                         groupScope.group = group;
                         groupScope.$index = index;
@@ -241,42 +237,84 @@
                     }
                     function hideItem(elem) {
                         elem.css('display', 'none');
+                        if (elem.css('visibility') === 'hidden') {
+                            elem.css('visibility', 'visible');
+                        }
                     }
                     function showItem(elem) {
                         if (elem.css('display') === 'none') {
                             elem.css('display', 'inline-block');
                         }
-                        if (elem.css('opacity') !== '1') {
-                            elem.css('opacity', '1');
+                        if (elem.css('visibility') === 'hidden') {
+                            elem.css('visibility', 'visible');
                         }
                     }
-                    function makeTransparent(elem) {
+                    function makeInvisible(elem) {
+                        elem.css('visibility', 'hidden');
                         if (elem.css('display') === 'none') {
                             elem.css('display', 'inline-block');
                         }
-                        elem.css('opacity', '0');
                     }
                     function updateRow(el, rowIndex, digest) {
-                        var items = getRowItems(el);
-                        var header = getRowHeader(el).eq(0);
+                        var itemElems = getRowItems(el);
+                        var headerElem = getRowHeader(el).eq(0);
                         var item, index;
-                        var inGroupHeader = false;
-                        for (var i = 0; i < items.length; ++i) {
+                        var inGroupHeader = false, inEmptyRow = false;
+                        /*for (let i = 0; i < items.length; ++i) {
+                          item = scope.supplier.getItem(rowIndex, i);
+                          index = (rowIndex * itemsPerRow) + i
+                          if (!isGroup(item)) {
+                            if (inGroupHeader) {
+                              hideItem(items.eq(i))
+                            } else {
+                              hideItem(header)
+                              updateItem(items.eq(i), item, index, digest);
+                            }
+                          } else {
+                            inGroupHeader = true
+                            hideItem(items.eq(i))
+                            updateGroup(header, item, index, digest)
+                          }
+                        }*/
+                        var i = 0;
+                        item = scope.supplier.getItem(rowIndex, i);
+                        index = (rowIndex * itemsPerRow) + i;
+                        if (isGroup(item)) {
+                            inGroupHeader = true;
+                            hideItem(itemElems.eq(i));
+                            updateGroup(headerElem, item, index, digest);
+                            showItem(headerElem);
+                        }
+                        else if (item === undefined || isEmptyObject(item)) {
+                            hideItem(headerElem);
+                            inEmptyRow = true;
+                            hideItem(itemElems.eq(i));
+                            updateItem(itemElems.eq(i), item, index, false);
+                        }
+                        else {
+                            hideItem(headerElem);
+                            updateItem(itemElems.eq(i), item, index, digest);
+                            showItem(itemElems.eq(i));
+                        }
+                        for (i = 1; i < itemElems.length; ++i) {
                             item = scope.supplier.getItem(rowIndex, i);
                             index = (rowIndex * itemsPerRow) + i;
-                            if (!isGroup(item)) {
-                                if (inGroupHeader) {
-                                    hideItem(items.eq(i));
-                                }
-                                else {
-                                    hideItem(header);
-                                    updateItem(items.eq(i), item, index, digest);
+                            if (inGroupHeader || inEmptyRow) {
+                                hideItem(itemElems.eq(i));
+                                updateItem(itemElems.eq(i), item, index, false);
+                                if (item !== undefined && !isEmptyObject(item)) {
+                                    var header = 'Expected to be in group header but found: ';
+                                    var empty = 'Expected to be in empty row but found: ';
+                                    $log.warn(((inEmptyRow) ? empty : header), item, new Error('Item Not Empty'));
                                 }
                             }
+                            else if (item === undefined || isEmptyObject(item)) {
+                                makeInvisible(itemElems.eq(i));
+                                updateItem(itemElems.eq(i), item, index, false);
+                            }
                             else {
-                                inGroupHeader = true;
-                                hideItem(items.eq(i));
-                                updateGroup(header, item, index, digest);
+                                updateItem(itemElems.eq(i), item, index, digest);
+                                showItem(itemElems.eq(i));
                             }
                         }
                         var translate = Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0);
