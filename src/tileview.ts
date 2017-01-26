@@ -29,6 +29,7 @@ declare const angular: any;
 	 * - **templateUrl** - {string} - Path to the template that should be used to render tiles. The template will implicitly have
 	 * access to the tile directive's scope plus an `item` object. Note that the template is responsible for maintaining the
 	 * selection state by calling the appropriate methods on the selection object.
+   * - **groupHeaderTemplateUrl** - {string} - Path to the template that should be used to render group headers
 	 * - **tileSize** - {object} - The current tile size represented as an object with the following properties:
 	 *   - **width** - {int} - The width of the tile.
 	 *   - **height** - {int} - The height of the tile.
@@ -42,15 +43,16 @@ declare const angular: any;
    * - **debounce** - {number} - Debounce for the scroll event. A value of `0` is interpreted as no debounce. **Default**: 0.
    * - **afterScrollDelay** - {number} - Time to wait in order to decide whether a scroll movement has finished. **Default**: 100.
    */
-  mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', ($compile, $templateCache, $timeout, $window) => {
+  mod.directive('tdTileview', ['$compile', '$templateCache', '$timeout', '$window', '$log', ($compile, $templateCache, $timeout, $window, $log) => {
     return {
       restrict: 'E',
       scope: {
         items: '=',
+        supplier: '=',
         options: '='
       },
       template: $templateCache.get('tileview.tpl.html'),
-      link: (scope, elem, attrs) => {
+      link: (scope, elem) => {
         scope.elem = elem;
         scope.tileStyle = {};
         scope.tileStyle.marginRight = "4px";
@@ -61,9 +63,10 @@ declare const angular: any;
         const itemContainer = container.children().eq(0);
 
         let linkFunction;
+        let headerLinkFunction;
 
-        let heightStart = 0;
-        let heightEnd = 0;
+        let itemClass = 'tileview-item';
+        let groupHeaderClass = 'tileview-group-header';
 
         let startRow = 0, endRow;
         let renderedStartRow = -1, renderedEndRow = -1;
@@ -83,8 +86,10 @@ declare const angular: any;
 
         function handleTileSizeChange() {
           forEachElement(el => {
-            el.css('width', scope.options.tileSize.width + 'px');
-            el.css('height', scope.options.tileSize.height + 'px');
+            if ((el.hasClass(itemClass))) {
+              el.css('width', scope.options.tileSize.width + 'px');
+              el.css('height', scope.options.tileSize.height + 'px');
+            }
           });
         }
 
@@ -95,6 +100,16 @@ declare const angular: any;
             removeAll();
           } else {
             console.error('Template url not found: ' + scope.options.templateUrl);
+          }
+        }
+
+        function handleGroupHeaderTemplateUrlChange() {
+          const template = $templateCache.get(scope.options.groupHeaderTemplateUrl);
+          if (template !== undefined) {
+            headerLinkFunction = $compile(template);
+            removeAll();
+          } else {
+            console.error('Group header template url not found: ' + scope.options.groupHeaderTemplateUrl);
           }
         }
 
@@ -121,6 +136,9 @@ declare const angular: any;
 
           if (options === currentOptions || options.templateUrl !== currentOptions.templateUrl) {
             handleTemplateUrlChange();
+          }
+          if (options === currentOptions || options.groupHeaderTemplateUrl !== currentOptions.groupHeaderTemplateUrl) {
+            handleGroupHeaderTemplateUrlChange();
           }
           if (options === currentOptions || options.alignHorizontal !== currentOptions.alignHorizontal) {
             handleAlignHorizontalChange();
@@ -228,28 +246,97 @@ declare const angular: any;
           endRow = startRow + cachedRowCount;
           lastScrollPosition = scrollPosition;
         }
+        function isEmptyObject(obj) {
+          return Object.keys(obj).length === 0
+        }
 
-        function updateItem(elem, index, digest) {
-          const item = scope.items[index];
-          if (item !== undefined) {
-            if (elem.css('display') === 'none') {
-              elem.css('display', 'inline-block');
-            }
-            const itemScope = scopes[elem.attr('id')];
-            itemScope.item = item;
-            itemScope.$index = index;
-            if (digest === true) {
-              itemScope.$digest();
-            }
-          } else {
-            elem.css('display', 'none');
+        function updateItem(elem, item, index, digest) {
+          const itemScope = scopes[elem.attr('id')];
+          itemScope.item = item;
+          itemScope.$index = index;
+          if (digest === true) {
+            itemScope.$digest();
+          }
+        }
+
+        function updateGroup(elem, group, index, digest) {
+          const groupScope = scopes[elem.attr('id')];
+          groupScope.group = group;
+          groupScope.$index = index;
+          if (digest === true) {
+            groupScope.$digest();
+          }
+        }
+
+        function isGroup (item) {
+          return !!(item && item.groupHeader)
+        }
+
+        function hideItem(elem) {
+          elem.css('display', 'none')
+          if(elem.css('visibility') === 'hidden') {
+            elem.css('visibility', 'visible')
+          }
+        }
+
+        function showItem(elem) {
+          if (elem.css('display') === 'none') {
+            elem.css('display', 'inline-block');
+          }
+          if(elem.css('visibility') === 'hidden') {
+            elem.css('visibility', 'visible')
+          }
+        }
+
+        function makeInvisible(elem) {
+          elem.css('visibility', 'hidden')
+          if (elem.css('display') === 'none') {
+            elem.css('display', 'inline-block');
           }
         }
 
         function updateRow(el, rowIndex, digest) {
-          const ch = el.children();
-          for (let i = 0; i < ch.length; ++i) {
-            updateItem(ch.eq(i), rowIndex * itemsPerRow + i, digest);
+          const itemElems = getRowItems(el);
+          const headerElem = getRowHeader(el).eq(0);
+          var item, index;
+          var inGroupHeader = false, inEmptyRow = false;
+          var i = 0
+          item = scope.supplier.getItem(rowIndex, i);
+          index = (rowIndex * itemsPerRow) + i
+          if (isGroup(item)) {
+            inGroupHeader = true
+            hideItem(itemElems.eq(i))
+            updateGroup(headerElem, item, index, digest)
+            showItem(headerElem)
+          } else if (item === undefined || isEmptyObject(item)) {
+            hideItem(headerElem)
+            inEmptyRow = true
+            hideItem(itemElems.eq(i))
+            updateItem(itemElems.eq(i), item, index, false);
+          } else {
+            hideItem(headerElem)
+            updateItem(itemElems.eq(i), item, index, digest);
+            showItem(itemElems.eq(i))
+          }
+
+          for (i = 1; i < itemElems.length; ++i) {
+            item = scope.supplier.getItem(rowIndex, i);
+            index = (rowIndex * itemsPerRow) + i
+            if (inGroupHeader || inEmptyRow) {
+              hideItem(itemElems.eq(i))
+              updateItem(itemElems.eq(i), item, index, false);
+              if (item !== undefined && !isEmptyObject(item)) {
+                let header = 'Expected to be in group header but found: '
+                let empty = 'Expected to be in empty row but found: '
+                $log.warn(((inEmptyRow) ? empty : header), item, new Error('Item Not Empty'))
+              }
+            } else if (item === undefined || isEmptyObject(item)) {
+              makeInvisible(itemElems.eq(i))
+              updateItem(itemElems.eq(i), item, index, false);
+            } else {
+              updateItem(itemElems.eq(i), item, index, digest);
+              showItem(itemElems.eq(i))
+            }
           }
           let translate = Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0);
           //el.css('transform', `${translate}(${Math.max(rowIndex * scope.options.tileSize[sizeDimension], 0)}px), translateZ(${rowIndex})`);
@@ -293,13 +380,33 @@ declare const angular: any;
             });
             const scopeId = nextScopeId();
             clonedElement.attr('id', scopeId);
+            clonedElement.addClass('tileview-item');
+            scopes[scopeId] = newScope;
+            row.append(clonedElement);
+          });
+        }
+
+        function addHeaderElementToRow(row) {
+          const newScope = scope.$parent.$new();
+          headerLinkFunction(newScope, function (clonedElement) {
+            clonedElement.css({
+              display: 'none',
+              'vertical-align': 'top'
+            });
+            const scopeId = nextScopeId();
+            clonedElement.attr('id', scopeId);
+            clonedElement.addClass('tileview-group-header');
             scopes[scopeId] = newScope;
             row.append(clonedElement);
           });
         }
 
         function fillRow(row) {
-          const currentRowLength = row.children().length;
+          const currentRowLength = getRowItems(row).length;
+          const headerInRow = getRowHeader(row).length;
+          if (!headerInRow) {
+            addHeaderElementToRow(row)
+          }
           if (currentRowLength < itemsPerRow) {
             for (let i = currentRowLength; i < itemsPerRow; ++i) {
               addElementToRow(row);
@@ -309,6 +416,14 @@ declare const angular: any;
               removeElementFromRow(row);
             }
           }
+        }
+
+        function getRowItems(row) {
+          return row.children('.' + itemClass);
+        }
+
+        function getRowHeader(row) {
+          return row.children('.' + groupHeaderClass);
         }
 
         function removeElementFromRow(row) {
@@ -344,6 +459,7 @@ declare const angular: any;
         function resize() {
           const newComponentSize = container[0].getBoundingClientRect();
           if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
+            lastScrollPosition = Number.NEGATIVE_INFINITY;
             if (layout(false)) {
               forEachElement(el => scopes[el.attr('id')].$digest());
             }
@@ -366,14 +482,18 @@ declare const angular: any;
           const newCachedRowCount = Math.ceil(size / scope.options.tileSize[sizeDimension]) + scope.options.overflow * 2;
 
           const changes = newItemsPerRow !== itemsPerRow || newCachedRowCount !== cachedRowCount;
+          // TODO let supplier know items per row
+          scope.supplier.setItemsPerRow(Math.max(newItemsPerRow, 1))
           itemsPerRow = Math.max(newItemsPerRow, 1);
           cachedRowCount = newCachedRowCount;
-          rowCount = Math.ceil(scope.items.length / itemsPerRow);
+          // TODO: get from service
+          rowCount = scope.supplier.getTotalRowCount()
           return changes;
         }
 
         let componentWidth = 0, componentHeight = 0;
         function layout(alwaysLayout) {
+          // TODO ask services if items are defined
           if (linkFunction !== undefined && scope.items !== undefined && sizeDimension !== undefined) {
             if (measure() || alwaysLayout) {
               createElements(cachedRowCount);

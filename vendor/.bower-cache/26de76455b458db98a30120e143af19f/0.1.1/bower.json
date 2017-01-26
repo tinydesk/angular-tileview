@@ -1,0 +1,17 @@
+{
+  "name": "angular-scroll-rtl",
+  "description": "Provides an abstraction layer to compensate for browser differences in handling scrollLeft in RTL mode.",
+  "main": "dist/angular-scroll-rtl.js",
+  "authors": [
+    "Hannes Widmoser"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/tinydesk/angular-scroll-rtl",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
