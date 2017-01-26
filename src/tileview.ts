@@ -459,6 +459,7 @@ declare const angular: any;
         function resize() {
           const newComponentSize = container[0].getBoundingClientRect();
           if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
+            lastScrollPosition = Number.NEGATIVE_INFINITY;
             if (layout(false)) {
               forEachElement(el => scopes[el.attr('id')].$digest());
             }

@@ -260,22 +260,6 @@
                         var headerElem = getRowHeader(el).eq(0);
                         var item, index;
                         var inGroupHeader = false, inEmptyRow = false;
-                        /*for (let i = 0; i < items.length; ++i) {
-                          item = scope.supplier.getItem(rowIndex, i);
-                          index = (rowIndex * itemsPerRow) + i
-                          if (!isGroup(item)) {
-                            if (inGroupHeader) {
-                              hideItem(items.eq(i))
-                            } else {
-                              hideItem(header)
-                              updateItem(items.eq(i), item, index, digest);
-                            }
-                          } else {
-                            inGroupHeader = true
-                            hideItem(items.eq(i))
-                            updateGroup(header, item, index, digest)
-                          }
-                        }*/
                         var i = 0;
                         item = scope.supplier.getItem(rowIndex, i);
                         index = (rowIndex * itemsPerRow) + i;
@@ -427,6 +411,7 @@
                     function resize() {
                         var newComponentSize = container[0].getBoundingClientRect();
                         if (newComponentSize.width !== componentWidth || newComponentSize.height !== componentHeight) {
+                            lastScrollPosition = Number.NEGATIVE_INFINITY;
                             if (layout(false)) {
                                 forEachElement(function (el) { return scopes[el.attr('id')].$digest(); });
                             }
