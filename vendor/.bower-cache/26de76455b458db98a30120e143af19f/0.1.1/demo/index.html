@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html ng-app="demoApp">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width">
+
+
+    <base href="../"/>
+    <title>RTL Scroll: Demo</title>
+
+    <!-- Le css -->
+    <link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="demo/demo.css"/>
+
+
+  </head>
+  <body style="height: 100vh;">
+
+    <div ng-controller="demoCtrl" class="demo" dir="{{ rtl ? 'rtl' : 'ltr' }}">
+      
+      <div class="position">
+        <div class="outer" scroll-left="scrollLeftFirst" direction="dirFirst">
+          <div class="inner">
+            <div class="fixed">scrollLeft ({{dirFirst}}): {{scrollLeftFirst}}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="position">
+        <div  class="outer" dir="rtl" scroll-left="scrollLeftSecond" direction="dirSecond">
+          <div class="inner">
+            <div class="fixed">scrollLeft ({{dirSecond}}): {{scrollLeftSecond}}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <!-- Le javascript -->
+    <script type="application/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+    <script type="application/javascript" src="dist/angular-scroll-rtl.js"></script>
+    <script type="application/javascript">
+      angular.module('demoApp', ['td.scroll'])
+        .controller('demoCtrl', ['$scope', function($scope) {
+        }])
+        .directive('scrollLeft', [function() {
+          return {
+            restrict: 'A',
+            scope: {
+              scrollLeft: '=',
+              direction: '='
+            },
+            link: function(scope, elem) {
+              scope.scrollLeft = elem.scrollLeft();
+              scope.direction = elem.direction();
+              elem.on('scroll', function() {
+                scope.$apply(function() {
+                  scope.scrollLeft = elem.scrollLeft();
+                });
+              });
+            }
+          };
+        }]);
+    </script>
+  </body>
+</html>
