@@ -404,7 +404,7 @@ declare const angular: any;
         function fillRow(row) {
           const currentRowLength = getRowItems(row).length;
           const headerInRow = getRowHeader(row).length;
-          if (!headerInRow) {
+          if (!headerInRow && headerLinkFunction) {
             addHeaderElementToRow(row)
           }
           if (currentRowLength < itemsPerRow) {
